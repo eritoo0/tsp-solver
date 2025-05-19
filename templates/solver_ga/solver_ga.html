@@ -1,0 +1,309 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GA</title>
+  <link href="{% static 'style.css' %}" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container"><!-- only one container -->
+
+    <!-- Form card -->
+    <div class="card">
+      <h1>GA</h1>
+      <form id="configForm" method="post">
+        <input type="hidden" name="algo" value="{{ algo }}">
+        <div>
+          <label for="filename">Fichier de benchmark</label>
+          <input type="text" id="filename" name="filename" value="berlin52_coords.txt" />
+        </div>
+        <div>
+          <label for="POP_SIZE">Taille population</label>
+          <input type="number" id="POP_SIZE" name="POP_SIZE" value="50" />
+        </div>
+        <div>
+          <label for="NUM_GENERATIONS">Générations</label>
+          <input type="number" id="NUM_GENERATIONS" name="NUM_GENERATIONS" value="500" />
+        </div>
+        <div>
+          <label for="MUTATION_RATE">Taux de mutation</label>
+          <input type="number" step="0.01" id="MUTATION_RATE" name="MUTATION_RATE" value="0.2" />
+        </div>
+        <button type="submit">Lancer la résolution</button>
+        <button type="button" id="compareButton">Comparer</button>
+      </form>
+    </div>
+
+    <!-- Results card -->
+    <div id="results" class="card hidden">
+      <!-- Convergence & erreur charts -->
+      <div>
+        <h2>Convergence</h2>
+        <canvas id="convergenceChart"></canvas>
+      </div>
+      <div>
+        <h2>Erreur relative (%)</h2>
+        <canvas id="errorChart"></canvas>
+      </div>
+      <pre id="logConsole"></pre>
+
+      <!-- Meilleur tour (initialement caché) -->
+      <div id="bestTour" class="full-width hidden">
+        <h2>Meilleur tour</h2>
+        <p id="bestTourText"></p>
+      </div>
+
+      <!-- Trace du tour (initialement cachée) -->
+      <div id="pathContainer" class="full-width hidden">
+        <h2>Trace du tour</h2>
+        <canvas id="pathChart"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <script>
+    // Récupère la valeur d’un cookie
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(cookie => {
+          const [key, val] = cookie.trim().split('=');
+          if (key === name) cookieValue = decodeURIComponent(val);
+        });
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("configForm");
+      const compareButton = document.getElementById("compareButton");
+      const results = document.getElementById("results");
+      const logConsole = document.getElementById("logConsole");
+      const bestTourEl = document.getElementById("bestTour");
+      const bestTourText = document.getElementById("bestTourText");
+      const pathContainer = document.getElementById("pathContainer");
+      const pathCtx = document.getElementById("pathChart").getContext("2d");
+
+      let pathChart;
+      let distChart, errChart;
+      let lastGen = 0;
+      let pollInterval;
+
+      // 🟢 RESET FUNCTION
+      function restartAll() {
+        results.classList.add("hidden");
+        bestTourEl.classList.add("hidden");
+        pathContainer.classList.add("hidden");
+        logConsole.textContent = "";
+        bestTourText.textContent = "";
+        lastGen = 0;
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        if (distChart) {
+          distChart.destroy();
+          distChart = null;
+        }
+        if (errChart) {
+          errChart.destroy();
+          errChart = null;
+        }
+        if (pathChart) {
+          pathChart.destroy();
+          pathChart = null;
+        }
+        document.getElementById("convergenceChart").getContext("2d").clearRect(0, 0, 400, 400);
+        document.getElementById("errorChart").getContext("2d").clearRect(0, 0, 400, 400);
+        document.getElementById("pathChart").getContext("2d").clearRect(0, 0, 400, 400);
+      }
+
+      // 🟢 On form submit
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        restartAll();
+
+        // Récupération des paramètres
+        const data = {};
+        new FormData(form).forEach((value, key) => {
+          data[key] = isNaN(value) ? value : +value;
+        });
+
+        // Démarrage du job
+        const startRes = await fetch("{% url 'GA_app:client_app' %}", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!startRes.ok) {
+          console.error("Échec démarrage job:", await startRes.text());
+          return;
+        }
+
+        // 🔽 Récupération du job_id depuis la réponse JSON
+        const startData = await startRes.json();
+        const job_id = startData.job_id;
+
+        results.classList.remove("hidden");
+        logConsole.textContent = "";
+        lastGen = 0;
+
+        // Initialisation des graphiques Chart.js
+        const ctxD = document.getElementById("convergenceChart").getContext("2d");
+        distChart = new Chart(ctxD, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [{
+              label: "Distance",
+              data: [],
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {title: {display: true, text: "Génération"}},
+              y: {title: {display: true, text: "Distance"}}
+            }
+          }
+        });
+
+        const ctxE = document.getElementById("errorChart").getContext("2d");
+        errChart = new Chart(ctxE, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [{
+              label: "Erreur (%)",
+              data: [],
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {title: {display: true, text: "Génération"}},
+              y: {title: {display: true, text: "Erreur (%)"}}
+            }
+          }
+        });
+
+        // Lancement du polling avec le job_id
+        pollInterval = setInterval(async () => {
+          // 🔽 Ajout du job_id dans la requête GET
+          const statusRes = await fetch(`{% url 'GA_app:result' %}?job_id=${encodeURIComponent(job_id)}`, {
+            credentials: "same-origin"
+          });
+
+          const job = await statusRes.json();
+          console.log("🔄 Status du job :", job);
+
+          if (job.logs && job.logs.length > lastGen) {
+            const newLogs = job.logs.slice(lastGen);
+            newLogs.forEach(entry => {
+              console.log(`📈 Gén ${entry.gen}`, entry);
+              distChart.data.labels.push(entry.gen);
+              distChart.data.datasets[0].data.push(entry.distance);
+              errChart.data.labels.push(entry.gen);
+              errChart.data.datasets[0].data.push(entry.error);
+              logConsole.textContent +=
+                `Gén ${entry.gen} | Dist: ${entry.distance} | Err: ${entry.error}% | Temps: ${entry.temps}s\n`;
+            });
+            distChart.update();
+            errChart.update();
+            lastGen = job.logs.length;
+          }
+
+          if (job.status === "done" || job.status === "error") {
+            clearInterval(pollInterval);
+
+
+            if (job.status === "done") {
+              bestTourEl.classList.remove("hidden");
+              bestTourText.textContent = job.tour.join(" → ");
+
+              const tourCoords = job.tour.map(idx => ({
+                x: job.city_coords[idx][0],
+                y: job.city_coords[idx][1]
+              }));
+              tourCoords.push(tourCoords[0]);
+              const startPoint = [tourCoords[0]];
+              pathContainer.classList.remove("hidden");
+
+              if (!pathChart) {
+                pathChart = new Chart(pathCtx, {
+                  type: "scatter",
+                  data: {
+                    datasets: [
+                      {
+                        label: "Tour",
+                        data: tourCoords,
+                        showLine: true,
+                        fill: false,
+                        borderColor: "#2563eb",
+                        pointRadius: 4,
+                        pointBackgroundColor: "#2563eb"
+                      },
+                      {
+                        label: "Départ",
+                        data: startPoint,
+                        showLine: false,
+                        pointRadius: 8,
+                        pointBackgroundColor: "red"
+                      }
+                    ]
+                  },
+                  options: {
+                    responsive: true,
+                    scales: {
+                      x: {type: "linear", title: {display: true, text: "X"}},
+                      y: {type: "linear", title: {display: true, text: "Y"}}
+                    }
+                  }
+                });
+              } else {
+                pathChart.data.datasets[0].data = tourCoords;
+                pathChart.update();
+              }
+              console.log("🖼️ pathChart instance:", pathChart);
+              console.log("✅ Affichage du chemin, pathContainer classes:", pathContainer.classList);
+              logConsole.textContent += "\n✅ Exécution terminée\n";
+
+              return;
+            }
+
+            if (job.status === "error") {
+              logConsole.textContent += `\nErreur serveur : ${job.error_msg}\n`;
+            }
+          }
+        }, 250);
+      });
+
+      // 🟢 Compare button reset
+      compareButton.addEventListener("click", () => {
+        restartAll();
+        // Ajoutez ici la logique de comparaison si besoin
+      });
+
+    });
+
+  </script>
+
+</body>
+
+
+</html>

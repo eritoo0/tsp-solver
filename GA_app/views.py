@@ -8,7 +8,7 @@ import uuid
 from random import random
 from time import time
 
-from solver import solve_tsp
+from solver import solve_tsp_ga
 from orjson import dumps, loads
 
 
@@ -28,8 +28,7 @@ def run_job(job_id, filename, params):
                  error,
                  logs):
 
-        
-        with open('solver/status.json', 'rb') as f:
+        with open('solver/status2.json', 'rb') as f:
             content = loads(f.read())
 
         content[job_id] = {
@@ -41,11 +40,11 @@ def run_job(job_id, filename, params):
             "logs": logs
         }
 
-        with open('solver/status.json', 'wb') as f:
+        with open('solver/status2.json', 'wb') as f:
             f.write(dumps(content))
 
     #
-    tour, distance, error, logs, city_coords = solve_tsp(
+    tour, distance, error, logs, city_coords = solve_tsp_ga(
         filename, callback, **params)
 
 
@@ -56,7 +55,7 @@ def client_app(request):
 
     if request.method == 'POST':
         # reset the json
-        # with open('solver/status.json', 'wb') as f:
+        # with open('solver/status2.json', 'wb') as f:
         #     f.write(dumps({
         #         "status": 'not done',
         #         "tour": [],
@@ -85,18 +84,18 @@ def client_app(request):
 
         return JsonResponse({'job_id': job_id})
 
-    return render(request, 'client_app/client_app.html')
+    return render(request, 'solver_ga/solver_ga.html')
 
 
 def results_view(request):
     try:
         job_id = request.GET.get('job_id')
-        with open('solver/status.json', 'r') as f:
+        with open('solver/status2.json', 'r') as f:
             status = json.load(f)
 
         return JsonResponse(status[job_id])
     except:
-        with open('solver/status.json', 'w') as f:
+        with open('solver/status2.json', 'w') as f:
             f.write('{}')
         return JsonResponse(
             {
