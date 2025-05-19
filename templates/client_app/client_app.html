@@ -231,6 +231,7 @@
           if (job.status === "done" || job.status === "error") {
             clearInterval(pollInterval);
 
+
             if (job.status === "done") {
               bestTourEl.classList.remove("hidden");
               bestTourText.textContent = job.tour.join(" → ");
@@ -280,6 +281,7 @@
               }
               console.log("🖼️ pathChart instance:", pathChart);
               console.log("✅ Affichage du chemin, pathContainer classes:", pathContainer.classList);
+              logConsole.textContent += "\n✅ Exécution terminée\n";
 
               return;
             }

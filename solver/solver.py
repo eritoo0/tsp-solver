@@ -95,13 +95,11 @@ def solve_tsp(filename, callback, **params):
             if recent < ADAPT_THRESHOLD:
                 MUTATION_RATE = min(1.0, MUTATION_RATE + 0.02)
                 EVAPORATION_RATE = min(1.0, EVAPORATION_RATE + 0.02)
-                print(f"🔧 Adaptation (stagnation) → MUT={
-                      MUTATION_RATE:.2f}, EVAP={EVAPORATION_RATE:.2f}")
+                print(f"🔧 Adaptation (stagnation) → MUT={MUTATION_RATE:.2f}, EVAP={EVAPORATION_RATE:.2f}")
             else:
                 MUTATION_RATE = max(0.01, MUTATION_RATE - 0.01)
                 EVAPORATION_RATE = max(0.01, EVAPORATION_RATE - 0.005)
-                print(f"🔧 Adaptation (progrès) → MUT={
-                      MUTATION_RATE:.2f}, EVAP={EVAPORATION_RATE:.2f}")
+                print(f"🔧 Adaptation (progrès) → MUT={MUTATION_RATE:.2f}, EVAP={EVAPORATION_RATE:.2f}")
 
         # --- Stagnation detection ---
         if abs(best_score - previous_best) < 1e-4:
@@ -127,8 +125,7 @@ def solve_tsp(filename, callback, **params):
         if stagnation_counter >= 30:
             print("\n🧠 [STAGNATION > 30] Détection de stagnation prolongée.")
             diversity = pop_diversity(population)
-            print(f"   Diversité ≈ {
-                  diversity:.2f}  |  erreur = {error_rel:.2f}%")
+            print(f"   Diversité ≈ {diversity:.2f}  |  erreur = {error_rel:.2f}%")
             if diversity > 0.20:
                 n_refine = max(2, int(POP_SIZE * 0.25))
                 top_k = sorted(population, key=lambda t: total_distance(
@@ -136,8 +133,7 @@ def solve_tsp(filename, callback, **params):
                 refined = [lin_kernighan(
                     t, distance_matrix, NUM_CITIES, max_moves=50) for t in top_k]
                 population = refined + population[n_refine:]
-                print(f"🔍 LK appliqué sur {
-                      n_refine} individus (intensification)")
+                print(f"🔍 LK appliqué sur {n_refine} individus (intensification)")
             elif error_rel > 5:
                 population = [honey_bee_colony(
                     population, distance_matrix, NUM_CITIES, POP_SIZE, MUTATION_RATE
@@ -149,8 +145,7 @@ def solve_tsp(filename, callback, **params):
                 print("🔀 Perturbation aléatoire (mode shake-out)")
             stagnation_counter = 0
             EVAL_WINDOW = max(2, EVAL_WINDOW - 1)
-            print(f"↪️ Population modifiée. Nouvelle taille de fenêtre = {
-                  EVAL_WINDOW}\n")
+            print(f"↪️ Population modifiée. Nouvelle taille de fenêtre = {EVAL_WINDOW}\n")
 
         # --- Strong stagnation (n >= 60) ---
         if stagnation_counter >= 60:
@@ -165,8 +160,7 @@ def solve_tsp(filename, callback, **params):
             stagnation_counter = 0
             print("↪️ Relance agressive partielle effectuée")
             EVAL_WINDOW = max(2, EVAL_WINDOW - 1)
-            print(f"↪️ Population relancée. Nouvelle taille de fenêtre d'évaluation : {
-                  EVAL_WINDOW}\n")
+            print(f"↪️ Population relancée. Nouvelle taille de fenêtre d'évaluation : {EVAL_WINDOW}\n")
 
         # --- Early stop (n >= 300) ---
         if stagnation_arreter >= 300:
@@ -261,8 +255,7 @@ def solve_tsp(filename, callback, **params):
     print(f"Temps total: {minutes} minute(s) et {seconds} seconde(s)")
     print("Distance:", round(best_score, 2))
     print("Distance optimale:", OPTIMAL_DISTANCE)
-    print(f"Erreur relative: {100 * (best_score - OPTIMAL_DISTANCE) /
-          OPTIMAL_DISTANCE:.2f}%" if OPTIMAL_DISTANCE else "")
+    print(f"Erreur relative: {100 * (best_score - OPTIMAL_DISTANCE) /OPTIMAL_DISTANCE:.2f}%" if OPTIMAL_DISTANCE else "")
 
     callback('done', best, city_coords.tolist(),
                  best_score, error_log, logs)
