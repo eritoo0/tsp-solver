@@ -19,6 +19,16 @@
   box-sizing: border-box;
 }
 
+body img#bg{
+  width: 100vw;
+  height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -27,6 +37,16 @@ body {
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
+
+  background-color: transparent;
+
+  /* background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYx4Zn0Qs7PJd9yWn2lQqsGOovsezd3DAvHw&s');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  height: 100vh;
+  overflow-y: scroll; */
 }
 
 .container {
