@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'home_app/home_app.css' %}">
+
+</head>
+
+
+<body>
+
+    <img src="{% static 'bg.jpg' %}" alt="" id="bg">
+
+    <div class="container">
+        <h1>Choose an Algorithm</h1>
+        <ul class="meta-list">
+            <li>
+                <a href="{% url 'tsp_app:solver' %}" title="Traveling Salesman Problem">
+                    Traveling Salesman Problem (TSP)
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'ga_app:solver' %}" title="Genetic Algorithm">
+                    Genetic Algorithm (GA)
+                </a>
+            </li>
+        </ul>
+    </div>
+</body>
+
+</html>

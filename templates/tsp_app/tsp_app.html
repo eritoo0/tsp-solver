@@ -5,21 +5,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GA</title>
+  <title>TSP Cooperative Web Interface</title>
   <link href="{% static 'style.css' %}" rel="stylesheet">
 </head>
 
 <body>
+  <img id="bg" src="{% static 'bg.jpg' %}" alt="">
+
   <div class="container"><!-- only one container -->
 
     <!-- Form card -->
     <div class="card">
-      <h1>GA</h1>
+      <h1>TSP Cooperative Solver</h1>
       <form id="configForm" method="post">
         <input type="hidden" name="algo" value="{{ algo }}">
         <div>
           <label for="filename">Fichier de benchmark</label>
-          <input type="text" id="filename" name="filename" value="berlin52_coords.txt" />
+          <!-- <input type="text" id="filename" name="filename" value="berlin52_coords.txt" /> -->
+          <select name="filename">
+            <option value="berlin52_coords.txt">Berlin52 Villes</option>
+            <option value="kr100_coords.txt">KR100</option>
+          </select>
         </div>
         <div>
           <label for="POP_SIZE">Taille population</label>
@@ -138,7 +144,7 @@
         });
 
         // Démarrage du job
-        const startRes = await fetch("{% url 'GA_app:client_app' %}", {
+        const startRes = await fetch("{% url 'tsp_app:solver' %}", {
           method: "POST",
           credentials: "same-origin",
           headers: {
@@ -205,7 +211,7 @@
         // Lancement du polling avec le job_id
         pollInterval = setInterval(async () => {
           // 🔽 Ajout du job_id dans la requête GET
-          const statusRes = await fetch(`{% url 'GA_app:result' %}?job_id=${encodeURIComponent(job_id)}`, {
+          const statusRes = await fetch(`{% url 'tsp_app:result' %}?job_id=${encodeURIComponent(job_id)}`, {
             credentials: "same-origin"
           });
 
