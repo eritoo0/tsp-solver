@@ -1,4 +1,4 @@
-from solver.funcs import *
+from .funcs import *
 import random
 import time
 import numpy as np

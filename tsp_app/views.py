@@ -8,11 +8,14 @@ import uuid
 from random import random
 from time import time
 
-from solver import solve_tsp_ga
+from _solver import solve_tsp
 from orjson import dumps, loads
 
 
 from django.views.decorators.csrf import csrf_exempt
+
+
+JOBS = {}
 
 def run_job(job_id, filename, params):
     """
@@ -28,10 +31,9 @@ def run_job(job_id, filename, params):
                  error,
                  logs):
 
-        with open('solver/status2.json', 'rb') as f:
-            content = loads(f.read())
+                
 
-        content[job_id] = {
+        JOBS[job_id] = {
             "status": status,
             "tour": tour,
             "city_coords": city_coords,
@@ -39,23 +41,21 @@ def run_job(job_id, filename, params):
             "error": error,
             "logs": logs
         }
-
-        with open('solver/status2.json', 'wb') as f:
-            f.write(dumps(content))
+        
 
     #
-    tour, distance, error, logs, city_coords = solve_tsp_ga(
+    tour, distance, error, logs, city_coords = solve_tsp(
         filename, callback, **params)
 
 
 jobs = []
 
 @csrf_exempt
-def client_app(request):
+def solver_view(request):
 
     if request.method == 'POST':
         # reset the json
-        # with open('solver/status2.json', 'wb') as f:
+        # with open('solver/status.json', 'wb') as f:
         #     f.write(dumps({
         #         "status": 'not done',
         #         "tour": [],
@@ -84,19 +84,14 @@ def client_app(request):
 
         return JsonResponse({'job_id': job_id})
 
-    return render(request, 'solver_ga/solver_ga.html')
+    return render(request, 'tsp_app/tsp_app.html')
 
 
 def results_view(request):
     try:
-        job_id = request.GET.get('job_id')
-        with open('solver/status2.json', 'r') as f:
-            status = json.load(f)
-
-        return JsonResponse(status[job_id])
-    except:
-        with open('solver/status2.json', 'w') as f:
-            f.write('{}')
+        job_id = request.GET.get('job_id')        
+        return JsonResponse(JOBS[job_id])
+    except:        
         return JsonResponse(
             {
                 "status": 'not done',

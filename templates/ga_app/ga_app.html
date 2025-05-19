@@ -5,18 +5,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TSP Cooperative Web Interface</title>
+  <title>GA</title>
   <link href="{% static 'style.css' %}" rel="stylesheet">
 </head>
 
 <body>
-  <img id="bg" src="{% static 'bg.jpg' %}" alt="">
-
   <div class="container"><!-- only one container -->
 
     <!-- Form card -->
     <div class="card">
-      <h1>TSP Cooperative Solver</h1>
+      <h1>GA</h1>
       <form id="configForm" method="post">
         <input type="hidden" name="algo" value="{{ algo }}">
         <div>
@@ -140,7 +138,7 @@
         });
 
         // Démarrage du job
-        const startRes = await fetch("{% url 'client_app:client_app' %}", {
+        const startRes = await fetch("{% url 'ga_app:solver' %}", {
           method: "POST",
           credentials: "same-origin",
           headers: {
@@ -207,7 +205,7 @@
         // Lancement du polling avec le job_id
         pollInterval = setInterval(async () => {
           // 🔽 Ajout du job_id dans la requête GET
-          const statusRes = await fetch(`{% url 'client_app:result' %}?job_id=${encodeURIComponent(job_id)}`, {
+          const statusRes = await fetch(`{% url 'ga_app:result' %}?job_id=${encodeURIComponent(job_id)}`, {
             credentials: "same-origin"
           });
 
