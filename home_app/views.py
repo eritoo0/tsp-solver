@@ -11,3 +11,6 @@ def meta_heuristics(request):
     Affiche la page de sélection de la métaheuristique.
     """
     return render(request, 'home_app/meta_heuristics.html')
+
+def compare(request):
+    return render(request, 'home_app/compare.html')
