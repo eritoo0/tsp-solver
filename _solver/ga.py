@@ -29,11 +29,6 @@ def solve_tsp_ga(filename, callback, **params):
     else:
         OPTIMAL_DISTANCE = None
 
-    # ACO Parameters
-    ALPHA = 1
-    BETA = 3
-    EVAPORATION_RATE = 0.1
-    Q = 100
 
     # random.seed(time.time())
     random.seed(42)

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Mon Projet TSP{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+  <img src="{% static 'bg.jpg' %}" id="bg" alt="background">
+  <header>
+    <nav class="container">
+      <a href="{% url 'home_app:home_app' %}">Accueil</a>
+      <span>|</span>
+      <a href="{% url 'home_app:meta_heuristics' %}">Méta-heuristiques</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

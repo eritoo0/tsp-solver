@@ -22,6 +22,9 @@ urlpatterns = [
     # path('model_app/', include('model_app.urls')),
     path('tsp/', include('tsp_app.urls')),
     path('ga/', include('ga_app.urls')),
+    path('aco/', include('aco_app.urls')),
+    path('hbc/', include('hbc_app.urls')),
+    path('sa/', include('sa_app.urls')),
     #
     path('', include('home_app.urls'))
 ]

@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     # 'model_app',
     'tsp_app',
     'ga_app',
+    'aco_app',
+    'hbc_app',
+    'sa_app',
     'home_app',
 ]
 
@@ -58,7 +61,7 @@ ROOT_URLCONF = '_main_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [ BASE_DIR / 'templates' ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

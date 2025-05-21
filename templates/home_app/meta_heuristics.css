@@ -1,0 +1,90 @@
+/* ==========================================================================
+   Styles pour la page Méta-heuristiques
+   ========================================================================== */
+
+/* Image de fond couvrant tout l’écran */
+body img#bg {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+/* Conteneur principal centré */
+.meta-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.8); /* léger fond blanc translucide */
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Titre de la page */
+.meta-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #1f2937; /* gris foncé */
+}
+
+/* Groupe de boutons */
+.btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Style du bouton GA */
+.btn-outline-primary {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #2563eb; /* bleu primaire */
+  border-radius: 0.75rem;
+  background-color: transparent;
+  color: #2563eb;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Effet au survol */
+.btn-outline-primary:hover {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Cadre moderne pour la navigation
+   ========================================================================== */
+header nav {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--primary);  /* ton bleu principal */
+  color: #fff;
+  border-radius: 0.5rem;              /* un léger arrondi */
+  box-shadow: none;                   /* plus d’ombre */
+  backdrop-filter: none;              /* plus de flou */
+  z-index: 1000;
+}
+
+header nav a {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+header nav a:hover {
+  background-color: #ffffff20;        /* blanc à 12% d’opacité au hover */
+  color: var(--bg);                   /* texte clair au hover */
+}

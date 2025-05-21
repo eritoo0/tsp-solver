@@ -10,6 +10,7 @@
 </head>
 
 <body>
+  <img src="{% static 'bg.jpg' %}" alt="" id="bg">
   <div class="container"><!-- only one container -->
 
     <!-- Form card -->
@@ -19,7 +20,11 @@
         <input type="hidden" name="algo" value="{{ algo }}">
         <div>
           <label for="filename">Fichier de benchmark</label>
-          <input type="text" id="filename" name="filename" value="berlin52_coords.txt" />
+          <!-- <input type="text" id="filename" name="filename" value="berlin52_coords.txt" /> -->
+          <select name="filename">
+            <option value="berlin52_coords.txt">Berlin52 Villes</option>
+            <option value="kr100_coords.txt">KR100</option>
+          </select>
         </div>
         <div>
           <label for="POP_SIZE">Taille population</label>
@@ -138,7 +143,7 @@
         });
 
         // Démarrage du job
-        const startRes = await fetch("{% url 'ga_app:solver' %}", {
+        const startRes = await fetch("{% url 'ga_app:run_ga' %}", {
           method: "POST",
           credentials: "same-origin",
           headers: {
@@ -176,8 +181,8 @@
           options: {
             responsive: true,
             scales: {
-              x: {title: {display: true, text: "Génération"}},
-              y: {title: {display: true, text: "Distance"}}
+              x: { title: { display: true, text: "Génération" } },
+              y: { title: { display: true, text: "Distance" } }
             }
           }
         });
@@ -196,8 +201,8 @@
           options: {
             responsive: true,
             scales: {
-              x: {title: {display: true, text: "Génération"}},
-              y: {title: {display: true, text: "Erreur (%)"}}
+              x: { title: { display: true, text: "Génération" } },
+              y: { title: { display: true, text: "Erreur (%)" } }
             }
           }
         });
@@ -270,8 +275,8 @@
                   options: {
                     responsive: true,
                     scales: {
-                      x: {type: "linear", title: {display: true, text: "X"}},
-                      y: {type: "linear", title: {display: true, text: "Y"}}
+                      x: { type: "linear", title: { display: true, text: "X" } },
+                      y: { type: "linear", title: { display: true, text: "Y" } }
                     }
                   }
                 });
