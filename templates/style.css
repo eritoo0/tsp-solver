@@ -139,21 +139,6 @@ button:hover,
   margin-top: 1rem;
 }
 
-/* Les boutons héritent déjà de vos styles .button */
-#compareButton {
-  /* on peut lui donner une autre couleur si souhaité : */
-  background-color: #10b981;
-  /* vert-emerald */
-}
-
-#compareButton:hover {
-  background-color: #047857;
-  /* un vert plus sombre */
-}
-
-
-
-
 #results {
   display: grid;
   grid-template-columns: 1fr;

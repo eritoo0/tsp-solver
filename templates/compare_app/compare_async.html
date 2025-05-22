@@ -1,0 +1,412 @@
+<!-- File: compare_app/templates/compare_app/compare_async.html -->
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparaison asynchrone des métaheuristiques TSP</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    body img#bg {
+      width: 100vw;
+      height: 100vh;
+
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f0f0f0;
+    }
+
+    #controls input {
+      flex: 1;
+      max-width: 200px;
+      padding: 0.5rem;
+    }
+
+    #controls button {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .console-panel {
+      background: rgba(30, 41, 59, 0.9);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+
+    .console-panel pre {
+      margin: 0;
+      color: #a5f3fc;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+
+
+    /* .panel {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    } */
+.panel {
+  /* background-color: var(--card-bg);
+   */
+  background-color: #ffffffaa;
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius);
+  border: 1px solid #ffffff;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+    .panel h2 {
+      margin: 0;
+    }
+
+    .panel select,
+    .panel input {
+      width: 100%;
+      padding: 0.4rem;
+    }
+
+
+
+    #charts {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    canvas {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  {% load static %}
+  {{ algorithms|json_script:"algos-data" }}
+  <img src="{% static 'bg.jpg' %}" alt="" id="bg">
+  <div class="compare-container">
+    <!-- Contrôles -->
+    <div id="controls">
+      <label for="filename">Fichier :</label>
+      <input type="text" id="filename" value="{{ default_filename }}" />
+      
+      <button id="startBtn">Lancer comparaison</button>
+      <button id="toggleTour">Afficher Tour : A</button>
+    </div>
+
+    <!-- Panels A et B -->
+    <div class="container">
+      <div class="panel" id="panelA">
+        <h2>Algorithme A</h2>
+        <select id="algoA"></select>
+        <div id="paramsA"></div>
+        <div class="console-panel">
+          <pre id="consoleA">Logs A…</pre>
+        </div>
+      </div>
+      <div class="panel" id="panelB">
+        <h2>Algorithme B</h2>
+        <select id="algoB"></select>
+        <div id="paramsB"></div>
+        <div class="console-panel">
+          <pre id="consoleB">Logs B…</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div id="charts">
+      <div>
+        <h3>Convergence</h3>
+        <canvas id="chartConvergence" width="600" height="200"></canvas>
+      </div>
+
+      <!-- Meilleur tour -->
+      <div id="bestTourContainer"
+        style="margin:20px 0; background:#fff; padding:10px; border:1px solid #ccc; border-radius:4px;">
+        <h2>Meilleur tour</h2>
+        <p id="bestTourText"></p>
+      </div>
+
+      <div>
+        <h3>Trace du tour</h3>
+        <canvas id="mapTour" width="600" height="400"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+
+    (async () => {
+      // 1) Charger définitions et éléments DOM
+      const algos = JSON.parse(document.getElementById('algos-data').textContent);
+      const selA = document.getElementById('algoA'),
+        selB = document.getElementById('algoB'),
+        paramsA = document.getElementById('paramsA'),
+        paramsB = document.getElementById('paramsB'),
+        consoleA = document.getElementById('consoleA'),
+        consoleB = document.getElementById('consoleB'),
+        filenameInput = document.getElementById('filename'),
+        startBtn = document.getElementById('startBtn'),
+        toggleBtn = document.getElementById('toggleTour');
+      let resultA, resultB, tourVisible = 'A';
+      let bestTourA = [], bestTourB = [];
+      const bestTourText = document.getElementById('bestTourText');
+
+      // 2) Peuplage des <select>
+      function populate(sel) {
+        sel.innerHTML = '<option value="" disabled selected>— Choisir —</option>';
+        Object.keys(algos).forEach(key => {
+          const o = new Option(key, key);
+          sel.add(o);
+        });
+      }
+      populate(selA);
+      populate(selB);
+
+      // 3) Afficher paramètres dynamiques
+      function showParams(algoKey, container) {
+        container.innerHTML = '';
+        algos[algoKey].forEach(p => {
+          const label = document.createElement('label');
+          label.textContent = p.label;
+          const input = document.createElement('input');
+          input.type = p.type;
+          input.name = p.name;      // <- ici, plus de préfixe
+          input.value = p.default;
+          container.append(label, input);
+        });
+      }
+      selA.onchange = () => showParams(selA.value, paramsA);
+      selB.onchange = () => showParams(selB.value, paramsB);
+
+      // 4) Lancer un job et poller
+      async function launch(panelId, algoKey) {
+        const payload = {
+          algo: algoKey,
+          filename: filenameInput.value
+        };
+        // récupérer params
+        document.querySelectorAll(`#params${panelId} input`).forEach(i => {
+          payload[i.name] = Number(i.value);
+        });
+        // POST lancer
+        const resp = await fetch("{% url 'compare_app:solver' %}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const { job_id } = await resp.json();
+        // polling
+        let data;
+        const consoleEl = (panelId === 'A' ? consoleA : consoleB);
+        do {
+          await new Promise(r => setTimeout(r, 500));
+          data = await fetch("{% url 'compare_app:results' %}?job_id=" + job_id)
+            .then(r => r.json());
+          // consoleEl.textContent = data.logs.join('\n');
+          consoleEl.textContent = data.logs
+            .map(log => {
+              if (typeof log === 'string') {
+                return log;               // si c'est déjà une string
+              } else if (log.generation !== undefined) {
+                // exemple si ton objet a ces propriétés :
+                return [
+                  `Gén: ${log.generation}`,
+                  `Best: ${log.best}`,
+                  `Err: ${log.error}`,
+                  `Tps: ${log.time}s`
+                ].join(' | ');
+              } else {
+                // fallback générique
+                return JSON.stringify(log);
+              }
+            })
+            .join('\n');
+          consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
+        } while (data.status !== 'done');
+        return data;
+      }
+
+      // 5) Bouton Lancer
+      startBtn.onclick = async () => {
+        if (!selA.value || !selB.value) {
+          alert('Veuillez choisir deux algorithmes.');
+          return;
+        }
+        // exécuter A et B en parallèle
+        [resultA, resultB] = await Promise.all([
+          launch('A', selA.value),
+          launch('B', selB.value)
+        ]);
+        drawConvergence();
+        drawTour();
+
+        // **stocker** les deux tournées
+        bestTourA = resultA.tour;
+        bestTourB = resultB.tour;
+        // **afficher** initialement A
+        bestTourText.textContent = bestTourA.join(' → ');
+      };
+
+      // 6) Tracer convergence
+      let convergenceChart;
+      function drawConvergence() {
+        const logsA = resultA.logs;
+        const logsB = resultB.logs;
+        const lenA = logsA.length;
+        const lenB = logsB.length;
+        const maxLen = Math.max(lenA, lenB);
+
+        // 1) labels de 1 à maxLen
+        const labels = Array.from({ length: maxLen }, (_, i) => i + 1);
+
+        // 2) construire dataA et dataB, en padant par null
+        const dataA = labels.map((_, i) =>
+          i < lenA ? logsA[i].distance : null
+        );
+        const dataB = labels.map((_, i) =>
+          i < lenB ? logsB[i].distance : null
+        );
+
+        // 3) afficher via Chart.js
+        const ctx = document.getElementById('chartConvergence').getContext('2d');
+        if (convergenceChart) convergenceChart.destroy();
+        convergenceChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'A',
+                data: dataA,
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0,0,255,0.1)',
+              },
+              {
+                label: 'B',
+                data: dataB,
+                borderColor: 'red',
+                backgroundColor: 'rgba(255,0,0,0.1)',
+              }
+            ]
+          },
+          options: {
+            spanGaps: false,              // ne relie pas les nulls
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+
+      // 7) Dessiner la tournée
+      let tourChart;
+      function drawTour() {
+        const tourData = (tourVisible === 'A' ? resultA : resultB);
+        // 1) composer le tableau {x,y} dans l'ordre du tour
+        const rawPts = tourData.tour.map(idx => {
+          const [x, y] = tourData.city_coords[idx];
+          return { x, y };
+        });
+        const pts = [...rawPts, rawPts[0]];
+        const ctx = document.getElementById('mapTour').getContext('2d');
+        // 2) détruire l'ancien chart si besoin
+        if (tourChart) tourChart.destroy();
+
+        // 3) créer un scatter chart
+        tourChart = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+            datasets: [
+              {
+                label: 'Tour',
+                data: pts,
+                showLine: true,
+                borderColor: 'blue',
+                backgroundColor: 'blue',
+                tension: 0.1,
+                pointRadius: 4,
+              },
+              {
+                label: 'Départ',
+                data: [rawPts[0]],
+                showLine: false,
+                borderColor: 'red',
+                backgroundColor: 'red',
+                pointRadius: 8,
+              }
+            ]
+          },
+          options: {
+            plugins: {
+              legend: { position: 'top' }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: { display: true, text: 'X' }
+              },
+              y: {
+                type: 'linear',
+                title: { display: true, text: 'Y' }
+              }
+            }
+          }
+        });
+      }
+
+      // 8) Bouton Toggle Tour
+      toggleBtn.onclick = () => {
+        tourVisible = (tourVisible === 'A' ? 'B' : 'A');
+        toggleBtn.textContent = 'Afficher Tour : ' + tourVisible;
+        drawTour();
+        // mettre à jour le paragraphe texte
+        if (tourVisible === 'A') {
+          bestTourText.textContent = bestTourA.join(' → ');
+        } else {
+          bestTourText.textContent = bestTourB.join(' → ');
+        }
+      };
+
+    })();
+  </script>
+</body>
+
+</html>

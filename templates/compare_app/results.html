@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Résultats de la comparaison</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+      .results-container { max-width: 800px; margin: auto; padding: 20px; font-family: sans-serif; }
+      h1 { text-align: center; }
+      canvas { display: block; margin: 20px auto; max-width: 600px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+      th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+<div class="results-container">
+  <h1>Résultats de la comparaison</h1>
+  <canvas id="compareChart"></canvas>
+  <table>
+    <thead><tr><th>Algorithme</th><th>Distance</th><th>Temps (s)</th></tr></thead>
+    <tbody>
+      {% for d in data %}
+      <tr><td>{{ d.name }}</td><td>{{ d.distance }}</td><td>{{ d.time }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script>
+  const labels    = JSON.parse('{{ data|pluck:"name"|escapejs }}');
+  const distances = JSON.parse('{{ data|pluck:"distance"|escapejs }}');
+  const times     = JSON.parse('{{ data|pluck:"time"|escapejs }}');
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Distance',   data: distances },
+        { label: 'Temps (s)',  data: times     }
+      ]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+</script>
+</body>
+</html>

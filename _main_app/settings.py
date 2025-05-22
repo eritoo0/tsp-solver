@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'aco_app',
     'hbc_app',
     'sa_app',
+    'compare_app',
     'home_app',
 ]
 

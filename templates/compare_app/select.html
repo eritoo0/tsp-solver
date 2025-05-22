@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparer les algorithmes TSP</title>
+  <style>
+    .select-container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      font-family: sans-serif;
+    }
+
+    .file-input,
+    .algo-panels {
+      margin-bottom: 1rem;
+    }
+
+    .algo-panel {
+      margin-bottom: 1rem;
+    }
+
+    .params label {
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    input,
+    select,
+    button {
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  {% load static %}
+  {{ algorithms|json_script:"algos-data" }}
+  <div class="select-container">
+    <h1>Sélection des algorithmes</h1>
+    <div class="file-input">
+      <label for="filename">Fichier de benchmark :</label>
+      <input type="text" id="filename" name="filename" value="{{ default_filename }}" />
+    </div>
+    <div class="algo-panels">
+      <div class="algo-panel">
+        <label for="algoA">Algorithme A :</label>
+        <select id="algoA" name="algoA"></select>
+        <div class="params" id="paramsA"></div>
+      </div>
+      <div class="algo-panel">
+        <label for="algoB">Algorithme B :</label>
+        <select id="algoB" name="algoB"></select>
+        <div class="params" id="paramsB"></div>
+      </div>
+    </div>
+    <button id="compareBtn">Comparer</button>
+  </div>
+  <script>
+    // Parse definitions safely from JSON script tag
+    const algoDefinitions = JSON.parse(
+      document.getElementById('algos-data').textContent
+    );
+
+    function populateSelect(selectEl) {
+      selectEl.innerHTML = '<option value="" disabled selected>Choisir...</option>';
+      Object.keys(algoDefinitions).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.text = key;
+        selectEl.add(opt);
+      });
+    }
+
+    function showParams(algoKey, container) {
+      container.innerHTML = '';
+      algoDefinitions[algoKey].forEach(param => {
+        const label = document.createElement('label');
+        label.textContent = param.label;
+        const input = document.createElement('input');
+        input.type = param.type;
+        input.name = `${algoKey}_${param.name}`;
+        input.value = param.default;
+        container.append(label, input);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const selA = document.getElementById('algoA');
+      const selB = document.getElementById('algoB');
+      populateSelect(selA);
+      populateSelect(selB);
+
+      selA.addEventListener('change', () => showParams(selA.value, document.getElementById('paramsA')));
+      selB.addEventListener('change', () => showParams(selB.value, document.getElementById('paramsB')));
+
+      document.getElementById('compareBtn').addEventListener('click', () => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'compare_app:compare_async' %}";
+        form.innerHTML = `{% csrf_token %}`;
+
+        // include filename
+        const filenameVal = document.getElementById('filename').value;
+        form.appendChild(Object.assign(document.createElement('input'), {
+          type: 'hidden', name: 'filename', value: filenameVal
+        }));
+
+        ['A', 'B'].forEach(suf => {
+          const algo = document.getElementById(`algo${suf}`).value;
+          form.appendChild(Object.assign(document.createElement('input'), {
+            type: 'hidden', name: `algo${suf}`, value: algo
+          }));
+          // include each param
+          algoDefinitions[algo].forEach(p => {
+            const val = document.getElementsByName(`${algo}_${p.name}`)[0].value;
+            form.appendChild(Object.assign(document.createElement('input'), {
+              type: 'hidden', name: `${algo}_${p.name}`, value: val
+            }));
+          });
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      });
+    });
+  </script>
+</body>

@@ -25,6 +25,7 @@ urlpatterns = [
     path('aco/', include('aco_app.urls')),
     path('hbc/', include('hbc_app.urls')),
     path('sa/', include('sa_app.urls')),
+    path('compare/', include('compare_app.urls')),
     #
     path('', include('home_app.urls'))
 ]
