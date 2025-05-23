@@ -31,6 +31,8 @@ def solve_tsp(filename, callback, **params):
         OPTIMAL_DISTANCE = 6528
     elif filename == "kr200_coords.txt":
         OPTIMAL_DISTANCE = 29381
+    elif filename == "st70_coords.txt":
+        OPTIMAL_DISTANCE = 675
     else:
         OPTIMAL_DISTANCE = None
 
