@@ -399,11 +399,11 @@
               return `Gén ${gen} | Dist: ${l.distance} | Err: ${l.error}% | Tps: ${tps}s`;
             })
             .join('\n');
-          consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
-          const doneMsg = '\n✅ Exécution terminée';
-          consoleEl.textContent += doneMsg;
-          consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
+            consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight
+
         } while (data.status !== 'done');
+        consoleEl.textContent += `\n✅ Exécution terminée\n`;
+        consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight
 
         return data;
       }
