@@ -31,7 +31,7 @@ def run_job(job_id, filename, params):
                  distance,
                  error,
                  logs):
-
+    
         JOBS[job_id] = {
             "status": status,
             "tour": tour,

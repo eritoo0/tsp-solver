@@ -53,6 +53,7 @@ def solve_tsp_aco(filename, callback, **params):
 
     # Boucle principale ACO
     for it in range(1, NUM_ITERATIONS+1):
+        start_gen = time.time()
         all_tours = []
         all_lengths = []
 
@@ -108,8 +109,8 @@ def solve_tsp_aco(filename, callback, **params):
                 pheromone[b][a] += deposit
 
         # Callback vers l’interface / logging
-        elapsed = time.time() - start_all
-        
+        elapsed_total = time.time() - start_all
+        elapsed_gen = time.time() - start_gen
         
         if OPTIMAL_DISTANCE:
             error_rel = 100 * \
@@ -123,7 +124,8 @@ def solve_tsp_aco(filename, callback, **params):
             'iteration': it,
             'distance': best_score,
             'error': round(error_rel, 2),
-            'temps': round(elapsed, 2)
+            'temps': round(elapsed_gen,2),
+            'temps_total': round(elapsed_total, 2)
         })
         callback('not done', best, city_coords.tolist(),
                  best_score, error_log, logs)

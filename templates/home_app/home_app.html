@@ -5,11 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-
-
     {% load static %}
     <link rel="stylesheet" href="{% static 'home_app/home_app.css' %}">
-
 </head>
 
 
@@ -18,6 +15,20 @@
     <img src="{% static 'bg.jpg' %}" alt="" id="bg">
 
     <div class="container">
+
+        <section class="intro">
+            <h2>About This Project</h2>
+            <p>
+                This web application is the culmination of our final year project, in which we designed and implemented
+                a cooperative meta-heuristic framework for the classic Traveling Salesman Problem. Users can launch
+                exact and approximate solvers, visualize their convergence behavior, and directly compare multiple
+                algorithms side by side. The goal was to create an interactive tool that demonstrates how genetic
+                algorithms, ant colony optimization, simulated annealing, and other techniques perform on real-world TSP
+                instances.
+            </p>
+        </section>
+
+
         <h1>Choose an Algorithm</h1>
         <ul class="meta-list">
             <li>

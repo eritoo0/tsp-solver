@@ -179,7 +179,7 @@ def honey_bee_colony(population, distance_matrix, num_cities, pop_size,
 # Large perturbation operator
 
 
-def large_perturbation(tour, num_cities, intensity=5):
+def large_perturbation(tour, num_cities, intensity):
     tour = tour[:]
     for _ in range(intensity):
         i, j = sorted(random.sample(range(num_cities), 2))

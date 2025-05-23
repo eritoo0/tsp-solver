@@ -14,15 +14,14 @@
   <!-- Ici, vous pourriez mettre un header/nav commun : -->
   <header>
     <nav>
-      <a href="{% url 'home_app:home_app' %}">Accueil</a> 
+      <a href="{% url 'home_app:home_app' %}">Accueil</a>
       <!-- <a href="{% url 'home_app:meta_heuristics' %}">Méta-heuristiques</a> -->
     </nav>
   </header>
 
-  <main>
-    {% block content %}
+  <div class="meta-wrapper">
     <div class="meta-container">
-      <h2>Choisissez une méta-heuristique</h2>
+      <h2>Choose a meta-heuristic</h2>
       <div class="btn-group">
         <a href="{% url 'ga_app:run_ga' %}" class="btn-outline-primary">GA</a>
         <a href="{% url 'aco_app:run_aco' %}" class="btn-outline-primary">ACO</a>
@@ -30,8 +29,7 @@
         <a href="{% url 'sa_app:run_sa' %}" class="btn-outline-primary">SA</a>
       </div>
     </div>
-    {% endblock %}
-  </main>
+  </div>
 
   <!-- Exemple de script global : -->
 

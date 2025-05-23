@@ -1,7 +1,8 @@
 import random
 import time
 import numpy as np
-from .funcs import distance, total_distance, mutate, large_perturbation
+from .funcs import distance, mutate, large_perturbation
+
 
 def solve_tsp_hbc(filename, callback, **params):
     """
@@ -17,20 +18,21 @@ def solve_tsp_hbc(filename, callback, **params):
         INTENSITY       : intensité des perturbations lors de l’exploration
     """
     # ── Paramètres essentiels ────────────────────────────────────────────────
-    POP_SIZE       = params.get('POP_SIZE',       30)
-    NUM_ITERATIONS = params.get('NUM_ITERATIONS', 200)
-    NUM_BEES       = params.get('NUM_BEES',       20)
-    EXPLORATION    = params.get('EXPLORATION',   0.3)
-    INTENSITY      = params.get('INTENSITY',     5)
+    POP_SIZE = params.get("POP_SIZE", 30)
+    NUM_ITERATIONS = params.get("NUM_ITERATIONS", 200)
+    NUM_BEES = params.get("NUM_BEES", 20)
+    EXPLORATION = params.get("EXPLORATION", 0.3)
+    INTENSITY = params.get("INTENSITY", 5)
 
     # ── Chargement des villes ────────────────────────────────────────────────
     from pathlib import Path
+
     BASE = Path(__file__).resolve().parent.parent
-    data_file = BASE / 'data' / filename
+    data_file = BASE / "data" / filename
     city_coords = np.loadtxt(data_file, delimiter=",")
     NUM_CITIES = len(city_coords)
 
-        # Known optima
+    # Known optima
     if filename == "kr100_coords.txt":
         OPTIMAL_DISTANCE = 21282
     elif filename == "berlin52_coords.txt":
@@ -43,13 +45,15 @@ def solve_tsp_hbc(filename, callback, **params):
         OPTIMAL_DISTANCE = None
     # ── Matrice des distances euclidiennes arrondies ─────────────────────────
     distance_matrix = [
-        [distance(i, j, city_coords) if i !=
-         j else 0 for j in range(NUM_CITIES)]
+        [distance(i, j, city_coords) if i != j else 0 for j in range(NUM_CITIES)]
         for i in range(NUM_CITIES)
     ]
 
     def tour_length(tour):
-        return sum(distance_matrix[tour[i]][tour[(i+1)%NUM_CITIES]] for i in range(NUM_CITIES))
+        return sum(
+            distance_matrix[tour[i]][tour[(i + 1) % NUM_CITIES]]
+            for i in range(NUM_CITIES)
+        )
 
     # ── Population initiale ──────────────────────────────────────────────────
     population = [random.sample(range(NUM_CITIES), NUM_CITIES) for _ in range(POP_SIZE)]
@@ -61,14 +65,15 @@ def solve_tsp_hbc(filename, callback, **params):
     logs = []
     start_all = time.time()
 
-    for it in range(1, NUM_ITERATIONS+1):
+    for it in range(1, NUM_ITERATIONS + 1):
+        start_gen = time.time()
         # à chaque itération, chaque abeille tente une amélioration
         for _ in range(NUM_BEES):
             sol = random.choice(population)
             if random.random() < EXPLORATION:
                 cand = large_perturbation(sol, NUM_CITIES, intensity=INTENSITY)
             else:
-                cand = mutate(sol, rate=0.1, N=NUM_CITIES)
+                cand = mutate(tour=sol, mutation_rate=0.1, num_cities=NUM_CITIES)
             length = tour_length(cand)
             if length < best_score:
                 best, best_score = cand, length
@@ -78,30 +83,31 @@ def solve_tsp_hbc(filename, callback, **params):
 
         # calcul de l’erreur relative si on connaît l’optimum
         if OPTIMAL_DISTANCE:
-            error_rel = 100 * \
-                (best_score - OPTIMAL_DISTANCE) / OPTIMAL_DISTANCE
+            error_rel = 100 * (best_score - OPTIMAL_DISTANCE) / OPTIMAL_DISTANCE
         else:
             error_rel = 0
-
-        elapsed = time.time() - start_all
+        elapsed_total = time.time() - start_all
+        elapsed_gen = time.time() - start_gen
         error_log.append(error_rel)
-        logs.append({
-          'iteration': it,
-          'distance': best_score,
-          'error': round(error_rel,2),
-          'temps': round(elapsed,2)
-        })
+        logs.append(
+            {
+                "iteration": it,
+                "distance": best_score,
+                "error": round(error_rel, 2),
+                "temps": round(elapsed_gen, 2),
+                "temps_total": round(elapsed_total, 2),
+            }
+        )
 
         # callback vers l’UI
-        callback('not done', best, city_coords.tolist(),
-                 best_score, error_log, logs)
-        
+        callback("not done", best, city_coords.tolist(), best_score, error_log, logs)
+
         if OPTIMAL_DISTANCE and (best_score <= OPTIMAL_DISTANCE or error_rel <= 1):
             break
 
     # ── Fin et callback final ────────────────────────────────────────────────
     total_time = time.time() - start_all
     print(f"✅ HBC terminé en {round(total_time,2)} s – distance : {best_score}")
-    callback('done', best, city_coords.tolist(),
-                 best_score, error_log, logs)
+
+    callback("done", best, city_coords.tolist(), best_score, error_log, logs)
     return best, best_score, error_log, logs, city_coords.tolist()

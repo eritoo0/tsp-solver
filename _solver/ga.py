@@ -55,9 +55,9 @@ def solve_tsp_ga(filename, callback, **params):
     error_rel = 100
 
     
-    start_total = time.time()
+    start_all  = time.time()
 
-    for gen in range(NUM_GENERATIONS):
+    for gen in range(1 ,NUM_GENERATIONS +1):
         start_gen = time.time()
 
         new_population = []
@@ -83,22 +83,17 @@ def solve_tsp_ga(filename, callback, **params):
                 (best_score - OPTIMAL_DISTANCE) / OPTIMAL_DISTANCE
         else:
             error_rel = 0
-        elapsed = time.time() - start_gen
+        elapsed_total = time.time() - start_all
+        elapsed_gen = time.time() - start_gen
 
-        # --- Console logging ---
-        print(
-            f"Génération {gen+1} | Algorithme utilisé: GA pur"
-            f" | Best: {best_score:.2f}"
-            f" | Erreur relative: {error_rel:.2f}%"
-            f" | Temps: {elapsed:.2f}s"
-        )
         distance_log.append(best_score)
         error_log.append(error_rel)
         logs.append({
             'gen': gen,
             'distance': best_score,
             'error': round(error_rel, 2),
-            'temps': round(elapsed, 2)
+            'temps': round(elapsed_gen,2),
+            'temps_total': round(elapsed_total, 2)
         })
         #        
         callback('not done', best, city_coords.tolist(),
@@ -109,7 +104,7 @@ def solve_tsp_ga(filename, callback, **params):
             break
 
     # --- Final reporting ---
-    total_seconds = time.time() - start_total
+    total_seconds = time.time() - start_all
     minutes = int(total_seconds // 60)
     seconds = round(total_seconds % 60, 2)
     print("\n--- RESULTATS FINAUX ---")

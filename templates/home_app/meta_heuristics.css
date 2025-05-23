@@ -1,90 +1,107 @@
-/* ==========================================================================
-   Styles pour la page Méta-heuristiques
-   ========================================================================== */
+/* force html/body to full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
 
-/* Image de fond couvrant tout l’écran */
+/* background image */
 body img#bg {
-  width: 100vw;
-  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
   z-index: -1;
 }
 
-/* Conteneur principal centré */
+/* wrapper flex container → perfect centering */
+.meta-wrapper {
+  display: flex;
+  justify-content: center;
+  /* horiz */
+  align-items: center;
+  /* vert */
+  height: 100%;
+}
+
+/* the frosted-glass card */
 .meta-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  background-color: rgba(255, 255, 255, 0.8); /* léger fond blanc translucide */
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
+  max-width: 600px;
+  width: 90%;
+  padding: 2rem;
+  background-color: #ffffffaa;
+  backdrop-filter: blur(4px);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Titre de la page */
+/* title */
 .meta-container h2 {
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  color: #1f2937; /* gris foncé */
+  margin: 0 0 1.5rem;
+  font-size: 2rem;
+  color: #1f2937;
 }
 
-/* Groupe de boutons */
+/* button container */
 .btn-group {
   display: flex;
   justify-content: center;
   gap: 1rem;
 }
 
-/* Style du bouton GA */
+/* outline buttons */
 .btn-outline-primary {
-  display: inline-block;
   padding: 0.75rem 1.5rem;
-  border: 2px solid #2563eb; /* bleu primaire */
-  border-radius: 0.75rem;
-  background-color: transparent;
+  border: 2px solid #2563eb;
+  border-radius: 0.5rem;
+  background: transparent;
   color: #2563eb;
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-/* Effet au survol */
 .btn-outline-primary:hover {
   background-color: #2563eb;
-  color: #ffffff;
+  color: #fff;
 }
 
-/* ==========================================================================
-   Cadre moderne pour la navigation
-   ========================================================================== */
+/* (optional) fixed header/nav styling if you have one */
 header nav {
+  /* just to position your nav in the top-left corner */
   position: fixed;
   top: 1rem;
   left: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: var(--primary);  /* ton bleu principal */
-  color: #fff;
-  border-radius: 0.5rem;              /* un léger arrondi */
-  box-shadow: none;                   /* plus d’ombre */
-  backdrop-filter: none;              /* plus de flou */
   z-index: 1000;
 }
 
 header nav a {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  background-color: #4f46e5;
+  /* Bleu vif */
   color: #fff;
   font-weight: 600;
   text-decoration: none;
-  padding: 0.25rem 0.5rem;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: 9999px;
+  /* full pill */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 header nav a:hover {
-  background-color: #ffffff20;        /* blanc à 12% d’opacité au hover */
-  color: var(--bg);                   /* texte clair au hover */
+  background-color: #4338ca;
+  /* Slightly darker on hover */
+  transform: translateY(-1px);
+}
+
+header nav a:active {
+  background-color: #3730a3;
+  /* Even darker when clicked */
+  transform: translateY(0);
 }

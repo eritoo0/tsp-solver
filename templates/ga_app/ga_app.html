@@ -226,7 +226,8 @@
               errChart.data.labels.push(entry.gen);
               errChart.data.datasets[0].data.push(entry.error);
               logConsole.textContent +=
-                `Gén ${entry.gen} | Dist: ${entry.distance} | Err: ${entry.error}% | Temps: ${entry.temps}s\n`;
+                `Gen ${entry.gen} | Dist: ${entry.distance} | Err: ${entry.error}% | Temps: ${entry.temps}s | tempsTotal: ${entry.temps_total}s\n`;
+              logConsole.scrollTop = logConsole.scrollHeight;
             });
             distChart.update();
             errChart.update();
@@ -287,6 +288,7 @@
               console.log("🖼️ pathChart instance:", pathChart);
               console.log("✅ Affichage du chemin, pathContainer classes:", pathContainer.classList);
               logConsole.textContent += "\n✅ Exécution terminée\n";
+              logConsole.scrollTop = logConsole.scrollHeight;
 
               return;
             }
