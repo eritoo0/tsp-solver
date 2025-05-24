@@ -7,10 +7,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HBC</title>
     <link href="{% static 'style.css' %}" rel="stylesheet">
+    <style>
+        header nav {
+            /* just to position your nav in the top-left corner */
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+        }
+
+        header nav a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            background-color: #4f46e5;
+            /* Bleu vif */
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 9999px;
+            /* full pill */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        header nav a:hover {
+            background-color: #4338ca;
+            /* Slightly darker on hover */
+            transform: translateY(-1px);
+        }
+
+        header nav a:active {
+            background-color: #3730a3;
+            /* Even darker when clicked */
+            transform: translateY(0);
+        }
+    </style>
 </head>
 
 <body>
     <img src="{% static 'bg.jpg' %}" alt="" id="bg">
+    <header>
+        <nav>
+            <a href="{% url 'home_app:meta_heuristics' %}">Meta Page</a>
+            <!-- <a href="{% url 'home_app:meta_heuristics' %}">Méta-heuristiques</a> -->
+        </nav>
+    </header>
     <div class="container"><!-- only one container -->
 
         <!-- Form card -->
