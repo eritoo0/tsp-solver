@@ -6,8 +6,122 @@
   <title>{% block title %}Mon Projet TSP{% endblock %}</title>
   {% load static %}
   <!-- Exemple de CSS global : -->
-  <link rel="stylesheet" href="{% static 'meta_heuristics.css' %}">
-   
+  <!-- <link rel="stylesheet" href="{% static 'meta_heuristics.css' %}"> -->
+
+
+
+<style>
+
+  /* force html/body to full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* background image */
+body img#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+}
+
+/* wrapper flex container → perfect centering */
+.meta-wrapper {
+  display: flex;
+  justify-content: center;
+  /* horiz */
+  align-items: center;
+  /* vert */
+  height: 100%;
+}
+
+/* the frosted-glass card */
+.meta-container {
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  padding: 2rem;
+  background-color: #ffffffaa;
+  backdrop-filter: blur(4px);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* title */
+.meta-container h2 {
+  margin: 0 0 1.5rem;
+  font-size: 2rem;
+  color: #1f2937;
+}
+
+/* button container */
+.btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* outline buttons */
+.btn-outline-primary {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #2563eb;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #2563eb;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-outline-primary:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+/* (optional) fixed header/nav styling if you have one */
+header nav {
+  /* just to position your nav in the top-left corner */
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+}
+
+header nav a {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  background-color: #4f46e5;
+  /* Bleu vif */
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 9999px;
+  /* full pill */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+header nav a:hover {
+  background-color: #4338ca;
+  /* Slightly darker on hover */
+  transform: translateY(-1px);
+}
+
+header nav a:active {
+  background-color: #3730a3;
+  /* Even darker when clicked */
+  transform: translateY(0);
+}
+
+</style>
+
 </head>
 
 <body>
