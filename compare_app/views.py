@@ -39,15 +39,50 @@ ALGORITHMS = {
             "default": 0.2,
         },
         # Paramètres ACO
-        {"name": "ALPHA", "label": "Alpha (ACO)", "type": "number", "default": 1},
-        {"name": "BETA", "label": "Beta (ACO)", "type": "number", "default": 3},
+        {
+            "name": "ALPHA",
+            "label": "Alpha (ACO)",
+            "type": "number",
+            "default": 1,
+        },
+        {
+            "name": "BETA",
+            "label": "Beta (ACO)",
+            "type": "number",
+            "default": 3,
+        },
         {
             "name": "EVAPORATION_RATE",
             "label": "Evaporation Rate (ACO)",
             "type": "number",
             "default": 0.1,
         },
-        {"name": "Q", "label": "Q Value (ACO)", "type": "number", "default": 100},
+        {
+            "name": "Q",
+            "label": "Q Value (ACO)",
+            "type": "number",
+            "default": 100,
+        },
+        # Paramètres SA
+        {
+            "name": "SA_T",
+            "label": "Initial Temperature (SA)",
+            "type": "number",
+            "default": 50.0,
+        },
+        {
+            "name": "SA_COOLING",
+            "label": "Cooling Rate (SA)",
+            "type": "number",
+            "default": 0.995,
+        },
+        # Paramètre HBC (mutation spécifique)
+        {
+            "name": "HBC_MUTATION_RATE",
+            "label": "Mutation Rate (HBC)",
+            "type": "number",
+            "default": 0.2,
+        },
     ],
     "ga": [
         {

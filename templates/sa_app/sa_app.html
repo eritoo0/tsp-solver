@@ -62,36 +62,50 @@
             <form id="configForm" method="post">
                 <input type="hidden" name="algo" value="{{ algo }}">
                 <div>
-                    <label for="filename">Fichier de benchmark</label>
+                    <label for="filename">benchmark files</label>
                     <!-- <input type="text" id="filename" name="filename" value="berlin52_coords.txt" /> -->
                     <select name="filename">
-                        <option value="berlin52_coords.txt">Berlin52 Villes</option>
-                        <option value="kr100_coords.txt">KR100</option>
+                        <option value="berlin52_coords.txt">Berlin52</option>
+                        <option value="krA100_coords.txt">krA100</option>
+                        <option value="a280_coords.txt">a280</option>
+                        <option value="ch150_coords.txt">ch150</option>
+                        <option value="eil101_coords.txt">eil101</option>
+                        <option value="pr107_coords.txt">pr107</option>
+                        <option value="pr144_coords.txt">pr144</option>
+                        <option value="pr152_coords.txt">pr152</option>
+                        <option value="pr299_coords.txt">pr299</option>
+                        <option value="rat99_coords.txt">rat99</option>
+                        <option value="rat195_coords.txt">rat195</option>
+                        <option value="st70_coords.txt">st70</option>
                     </select>
                 </div>
                 <div>
-                    <label for="INITIAL_TEMPERATURE">Température initiale (INITIAL_TEMPERATURE)</label>
+                    <label for="INITIAL_TEMPERATURE">INITIAL_TEMPERATURE</label>
                     <input type="number" id="INITIAL_TEMPERATURE" name="INITIAL_TEMPERATURE" value="100.0" step="0.1"
                         min="0" />
+                    <span class="error-message"></span>
                 </div>
 
                 <div>
-                    <label for="COOLING_RATE">Taux de refroidissement (COOLING_RATE)</label>
-                    <input type="number" id="COOLING_RATE" name="COOLING_RATE" value="0.995" step="0.001" min="0"
+                    <label for="COOLING_RATE">COOLING_RATE</label>
+                    <input type="number" id="COOLING_RATE" name="COOLING_RATE" value="0.995" step="0.001" min="0.1"
                         max="1" />
+                    <span class="error-message"></span>
                 </div>
 
                 <div>
-                    <label for="MAX_ITER">Nombre max d’itérations (MAX_ITER)</label>
+                    <label for="MAX_ITER">Number MAX_ITER</label>
                     <input type="number" id="MAX_ITER" name="MAX_ITER" value="300" step="1" min="1" />
+                    <span class="error-message"></span>
                 </div>
 
                 <div>
-                    <label for="RESTARTS">Nombre de redémarrages (RESTARTS)</label>
+                    <label for="RESTARTS">Number of RESTARTS</label>
                     <input type="number" id="RESTARTS" name="RESTARTS" value="3" step="1" min="1" />
+                    <span class="error-message"></span>
                 </div>
 
-                <button type="submit">Lancer la résolution</button>
+                <button type="submit">Run solver</button>
                 <!-- <button type="button" id="compareButton">Comparer</button> -->
             </form>
         </div>
@@ -104,20 +118,20 @@
                 <canvas id="convergenceChart"></canvas>
             </div>
             <div>
-                <h2>Erreur relative (%)</h2>
+                <h2>Relative Error (%)</h2>
                 <canvas id="errorChart"></canvas>
             </div>
             <pre id="logConsole"></pre>
 
             <!-- Meilleur tour (initialement caché) -->
             <div id="bestTour" class="full-width hidden">
-                <h2>Meilleur tour</h2>
+                <h2>Best tour</h2>
                 <p id="bestTourText"></p>
             </div>
 
             <!-- Trace du tour (initialement cachée) -->
             <div id="pathContainer" class="full-width hidden">
-                <h2>Trace du tour</h2>
+                <h2>Tour path</h2>
                 <canvas id="pathChart"></canvas>
             </div>
         </div>
@@ -139,6 +153,24 @@
             return cookieValue;
         }
         const csrftoken = getCookie('csrftoken');
+
+        function showError(inputEl, message) {
+            inputEl.classList.add("error");
+            const msgEl = inputEl.nextElementSibling;
+            if (msgEl && msgEl.classList.contains("error-message")) {
+                msgEl.textContent = message;
+            }
+        }
+
+        function clearErrors(formEl) {
+            formEl.querySelectorAll("input").forEach(inp => {
+                inp.classList.remove("error");
+                const msgEl = inp.nextElementSibling;
+                if (msgEl && msgEl.classList.contains("error-message")) {
+                    msgEl.textContent = "";
+                }
+            });
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("configForm");
@@ -246,7 +278,7 @@
                     data: {
                         labels: [],
                         datasets: [{
-                            label: "Erreur (%)",
+                            label: "Error (%)",
                             data: [],
                             fill: false
                         }]
@@ -255,7 +287,7 @@
                         responsive: true,
                         scales: {
                             x: { title: { display: true, text: "Iteration" } },
-                            y: { title: { display: true, text: "Erreur (%)" } }
+                            y: { title: { display: true, text: "Error (%)" } }
                         }
                     }
                 });
@@ -279,7 +311,7 @@
                             errChart.data.labels.push(entry.iteration);
                             errChart.data.datasets[0].data.push(entry.error);
                             logConsole.textContent +=
-                                `It ${entry.iteration} | Dist: ${entry.distance} | Err: ${entry.error}% | Temps: ${entry.temps}s | tempsTotal: ${entry.temps_total}s\n`;
+                                `It ${entry.iteration} | Dist: ${entry.distance} | Err: ${entry.error}% | Time: ${entry.temps}s | Totaltime: ${entry.temps_total}s\n`;
                             logConsole.scrollTop = logConsole.scrollHeight;
                         });
                         distChart.update();
@@ -292,9 +324,10 @@
 
 
                         if (job.status === "done") {
+                            const tour = job.tour;                // ex. [0, 5, 2, 7, …]
+                            const fullTour = [...tour, tour[0]];  // ex. [0, 5, 2, 7, …, 0]
                             bestTourEl.classList.remove("hidden");
-                            bestTourText.textContent = job.tour.join(" → ");
-
+                            bestTourText.textContent = fullTour.join(" → ");
                             const tourCoords = job.tour.map(idx => ({
                                 x: job.city_coords[idx][0],
                                 y: job.city_coords[idx][1]
@@ -318,7 +351,7 @@
                                                 pointBackgroundColor: "#2563eb"
                                             },
                                             {
-                                                label: "Départ",
+                                                label: "Start",
                                                 data: startPoint,
                                                 showLine: false,
                                                 pointRadius: 8,
@@ -340,7 +373,7 @@
                             }
                             console.log("🖼️ pathChart instance:", pathChart);
                             console.log("✅ Affichage du chemin, pathContainer classes:", pathContainer.classList);
-                            logConsole.textContent += "\n✅ Exécution terminée\n";
+                            logConsole.textContent += "\n✅ Execution finished\n";
                             logConsole.scrollTop = logConsole.scrollHeight;
 
                             return;

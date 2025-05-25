@@ -6,13 +6,23 @@ import numpy as np
 
 def solve_tsp(filename, callback, **params):
     # Parameters
+    # --- Paramètres récupérés depuis l’interface ---
     POP_SIZE = params.get("POP_SIZE", 50)
     NUM_GENERATIONS = params.get("NUM_GENERATIONS", 500)
     MUTATION_RATE = params.get("MUTATION_RATE", 0.2)
-    ALPHA = params.get("ALPHA", 1)
-    BETA = params.get("BETA", 3)
+
+    # ACO
+    ALPHA = params.get("ALPHA", 1.0)
+    BETA = params.get("BETA", 3.0)
     EVAPORATION_RATE = params.get("EVAPORATION_RATE", 0.1)
-    Q = params.get("Q", 100)
+    Q = params.get("Q", 100.0)
+
+    # SA
+    SA_T = params.get("SA_T", 50.0)  # température initiale
+    SA_COOLING = params.get("SA_COOLING", 0.995)  # facteur de décroissance
+
+    # HBC (pour éventuellement surcharger le taux de mutation dans HBC)
+    HBC_MUTATION_RATE = params.get("HBC_MUTATION_RATE", 0.2)
 
     # Load cities
     from pathlib import Path
@@ -23,19 +33,32 @@ def solve_tsp(filename, callback, **params):
     NUM_CITIES = len(city_coords)
 
     # Known optima
-    if filename == "kr100_coords.txt":
+    if filename == "krA100_coords.txt":
         OPTIMAL_DISTANCE = 21282
     elif filename == "berlin52_coords.txt":
         OPTIMAL_DISTANCE = 7542
     elif filename == "ch150_coords.txt":
         OPTIMAL_DISTANCE = 6528
-    elif filename == "kr200_coords.txt":
-        OPTIMAL_DISTANCE = 29381
     elif filename == "st70_coords.txt":
         OPTIMAL_DISTANCE = 675
+    elif filename == "eil101_coords.txt":
+        OPTIMAL_DISTANCE = 629
+    elif filename == "pr144_coords.txt":
+        OPTIMAL_DISTANCE = 58537
+    elif filename == "a280_coords.txt":
+        OPTIMAL_DISTANCE = 2579
+    elif filename == "pr107_coords.txt":
+        OPTIMAL_DISTANCE = 44303
+    elif filename == "pr152_coords.txt":
+        OPTIMAL_DISTANCE = 73682
+    elif filename == "pr299_coords.txt":
+        OPTIMAL_DISTANCE = 48191
+    elif filename == "rat99_coords.txt":
+        OPTIMAL_DISTANCE = 1211
+    elif filename == "rat195_coords.txt":
+        OPTIMAL_DISTANCE = 2323
     else:
         OPTIMAL_DISTANCE = None
-
 
     # random.seed(time.time())
     random.seed(42)
@@ -147,7 +170,11 @@ def solve_tsp(filename, callback, **params):
             elif error_rel > 5:
                 population = [
                     honey_bee_colony(
-                        population, distance_matrix, NUM_CITIES, POP_SIZE, MUTATION_RATE
+                        population,
+                        distance_matrix,
+                        NUM_CITIES,
+                        POP_SIZE,
+                        mutation_rate=HBC_MUTATION_RATE,
                     )
                     for _ in range(POP_SIZE)
                 ]
@@ -214,7 +241,9 @@ def solve_tsp(filename, callback, **params):
             before = total_distance(child, distance_matrix, NUM_CITIES)
             child = mutate(child, MUTATION_RATE, NUM_CITIES)
             if SA_ACTIVE:
-                child = simulated_annealing(child, distance_matrix, NUM_CITIES, T=50.0)
+                child = simulated_annealing(
+                    child, distance_matrix, NUM_CITIES, T=SA_T, cooling_rate=SA_COOLING
+                )
             after = total_distance(child, distance_matrix, NUM_CITIES)
             improvement = before - after
             if gen % 20 == 0 and improvement < 5:
@@ -271,18 +300,22 @@ def solve_tsp(filename, callback, **params):
         # )
         distance_log.append(best_score)
         error_log.append(error_rel)
-        logs.append({
-            'gen': gen,
-            'distance': best_score,
-            'error': round(error_rel, 2),
-            'temps': round(elapsed_gen,2),
-            'temps_total': round(elapsed_total, 2)
-        })
+        logs.append(
+            {
+                "gen": gen,
+                "distance": best_score,
+                "error": round(error_rel, 2),
+                "temps": round(elapsed_gen, 2),
+                "temps_total": round(elapsed_total, 2),
+            }
+        )
         #
         callback("not done", best, city_coords.tolist(), best_score, error_log, logs)
 
         # --- Early stopping ---
-        if OPTIMAL_DISTANCE and (best_score <= OPTIMAL_DISTANCE or error_rel <= 1):
+        if NUM_CITIES > 100 and error_rel <= 1 :
+            break
+        if OPTIMAL_DISTANCE == best_score:
             break
 
     # --- Final reporting ---

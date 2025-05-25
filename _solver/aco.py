@@ -19,14 +19,30 @@ def solve_tsp_aco(filename, callback, **params):
     city_coords = np.loadtxt(data_file, delimiter=",")
     NUM_CITIES = len(city_coords)
     
-    if filename == "kr100_coords.txt":
+    if filename == "krA100_coords.txt":
         OPTIMAL_DISTANCE = 21282
     elif filename == "berlin52_coords.txt":
         OPTIMAL_DISTANCE = 7542
     elif filename == "ch150_coords.txt":
         OPTIMAL_DISTANCE = 6528
-    elif filename == "kr200_coords.txt":
-        OPTIMAL_DISTANCE = 29381
+    elif filename == "st70_coords.txt":
+        OPTIMAL_DISTANCE = 675
+    elif filename == "eil101_coords.txt":
+        OPTIMAL_DISTANCE = 629
+    elif filename == "pr144_coords.txt":
+        OPTIMAL_DISTANCE = 58537
+    elif filename == "a280_coords.txt":
+        OPTIMAL_DISTANCE = 2579
+    elif filename == "pr107_coords.txt":
+        OPTIMAL_DISTANCE = 44303
+    elif filename == "pr152_coords.txt":
+        OPTIMAL_DISTANCE = 73682
+    elif filename == "pr299_coords.txt":
+        OPTIMAL_DISTANCE = 48191
+    elif filename == "rat99_coords.txt":
+        OPTIMAL_DISTANCE = 1211
+    elif filename == "rat195_coords.txt":
+        OPTIMAL_DISTANCE = 2323
     else:
         OPTIMAL_DISTANCE = None
 
@@ -130,7 +146,9 @@ def solve_tsp_aco(filename, callback, **params):
         callback('not done', best, city_coords.tolist(),
                  best_score, error_log, logs)
         
-        if OPTIMAL_DISTANCE and (best_score <= OPTIMAL_DISTANCE or error_rel <= 1):
+        if NUM_CITIES > 100 and error_rel <= 1 :
+            break
+        elif OPTIMAL_DISTANCE == best_score:
             break
 
     

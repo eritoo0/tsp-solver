@@ -61,35 +61,50 @@
             <form id="configForm" method="post">
                 <input type="hidden" name="algo" value="{{ algo }}">
                 <div>
-                    <label for="filename">Fichier de benchmark</label>
+                    <label for="filename">benchmark files</label>
                     <!-- <input type="text" id="filename" name="filename" value="berlin52_coords.txt" /> -->
                     <select name="filename">
-                        <option value="berlin52_coords.txt">Berlin52 Villes</option>
-                        <option value="kr100_coords.txt">KR100</option>
+                        <option value="berlin52_coords.txt">Berlin52</option>
+                        <option value="krA100_coords.txt">krA100</option>
+                        <option value="a280_coords.txt">a280</option>
+                        <option value="ch150_coords.txt">ch150</option>
+                        <option value="eil101_coords.txt">eil101</option>
+                        <option value="pr107_coords.txt">pr107</option>
+                        <option value="pr144_coords.txt">pr144</option>
+                        <option value="pr152_coords.txt">pr152</option>
+                        <option value="pr299_coords.txt">pr299</option>
+                        <option value="rat99_coords.txt">rat99</option>
+                        <option value="rat195_coords.txt">rat195</option>
+                        <option value="st70_coords.txt">st70</option>
                     </select>
                 </div>
                 <div>
-                    <label for="POP_SIZE">Taille de la population (ouvrières)</label>
+                    <label for="POP_SIZE">Population size (worker bees)</label>
                     <input type="number" id="POP_SIZE" name="POP_SIZE" value="30" min="1" step="1" />
+                    <span class="error-message"></span>
                 </div>
                 <div>
-                    <label for="NUM_ITERATIONS">Itérations (ruche)</label>
+                    <label for="NUM_ITERATIONS">Iterations (beehive)</label>
                     <input type="number" id="NUM_ITERATIONS" name="NUM_ITERATIONS" value="200" min="1" step="1" />
+                    <span class="error-message"></span>
                 </div>
                 <div>
-                    <label for="NUM_BEES">Nombre d'abeilles par itération</label>
+                    <label for="NUM_BEES">Number of bees in each iteration</label>
                     <input type="number" id="NUM_BEES" name="NUM_BEES" value="20" min="1" step="1" />
+                    <span class="error-message"></span>
                 </div>
                 <div>
-                    <label for="EXPLORATION">Taux d’exploration</label>
+                    <label for="EXPLORATION">exploration rate</label>
                     <input type="number" id="EXPLORATION" name="EXPLORATION" value="0.3" min="0" max="1" step="0.01" />
+                    <span class="error-message"></span>
                 </div>
                 <div>
-                    <label for="INTENSITY">Intensité perturbation</label>
+                    <label for="INTENSITY">Perturbation intensity</label>
                     <input type="number" id="INTENSITY" name="INTENSITY" value="5" min="1" step="1" />
+                    <span class="error-message"></span>
                 </div>
 
-                <button type="submit">Lancer la résolution</button>
+                <button type="submit">Run solver</button>
                 <!-- <button type="button" id="compareButton">Comparer</button> -->
             </form>
         </div>
@@ -102,20 +117,20 @@
                 <canvas id="convergenceChart"></canvas>
             </div>
             <div>
-                <h2>Erreur relative (%)</h2>
+                <h2>Relative Error (%)</h2>
                 <canvas id="errorChart"></canvas>
             </div>
             <pre id="logConsole"></pre>
 
             <!-- Meilleur tour (initialement caché) -->
             <div id="bestTour" class="full-width hidden">
-                <h2>Meilleur tour</h2>
+                <h2>Best tour</h2>
                 <p id="bestTourText"></p>
             </div>
 
             <!-- Trace du tour (initialement cachée) -->
             <div id="pathContainer" class="full-width hidden">
-                <h2>Trace du tour</h2>
+                <h2>Tour path</h2>
                 <canvas id="pathChart"></canvas>
             </div>
         </div>
@@ -244,7 +259,7 @@
                     data: {
                         labels: [],
                         datasets: [{
-                            label: "Erreur (%)",
+                            label: "Error (%)",
                             data: [],
                             fill: false
                         }]
@@ -253,7 +268,7 @@
                         responsive: true,
                         scales: {
                             x: { title: { display: true, text: "Iteration" } },
-                            y: { title: { display: true, text: "Erreur (%)" } }
+                            y: { title: { display: true, text: "Error (%)" } }
                         }
                     }
                 });
@@ -277,7 +292,7 @@
                             errChart.data.labels.push(entry.iteration);
                             errChart.data.datasets[0].data.push(entry.error);
                             logConsole.textContent +=
-                                `It ${entry.iteration} | Dist: ${entry.distance} | Err: ${entry.error}% | Temps: ${entry.temps}s | tempsTotal: ${entry.temps_total}s\n`;
+                                `It ${entry.iteration} | Dist: ${entry.distance} | Err: ${entry.error}% | Time: ${entry.temps}s | Totaltime: ${entry.temps_total}s\n`;
                             logConsole.scrollTop = logConsole.scrollHeight;
                         });
                         distChart.update();
@@ -290,8 +305,10 @@
 
 
                         if (job.status === "done") {
+                            const tour = job.tour;                // ex. [0, 5, 2, 7, …]
+                            const fullTour = [...tour, tour[0]];  // ex. [0, 5, 2, 7, …, 0]
                             bestTourEl.classList.remove("hidden");
-                            bestTourText.textContent = job.tour.join(" → ");
+                            bestTourText.textContent = fullTour.join(" → ");
 
                             const tourCoords = job.tour.map(idx => ({
                                 x: job.city_coords[idx][0],
@@ -316,7 +333,7 @@
                                                 pointBackgroundColor: "#2563eb"
                                             },
                                             {
-                                                label: "Départ",
+                                                label: "Start",
                                                 data: startPoint,
                                                 showLine: false,
                                                 pointRadius: 8,
@@ -338,7 +355,7 @@
                             }
                             console.log("🖼️ pathChart instance:", pathChart);
                             console.log("✅ Affichage du chemin, pathContainer classes:", pathContainer.classList);
-                            logConsole.textContent += "\n✅ Exécution terminée\n";
+                            logConsole.textContent += "\n✅ Execution finished\n";
                             logConsole.scrollTop = logConsole.scrollHeight;
 
                             return;

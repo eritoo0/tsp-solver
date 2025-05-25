@@ -244,6 +244,11 @@
       /* Even darker when clicked */
       transform: translateY(0);
     }
+
+    #errorMsg {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -253,7 +258,7 @@
   <img id="bg" src="{% static 'bg.jpg' %}" alt="Fond">
   <header>
     <nav>
-      <a href="{% url 'home_app:home_app' %}">Accueil</a>
+      <a href="{% url 'home_app:home_app' %}">Home</a>
       <!-- <a href="{% url 'home_app:meta_heuristics' %}">Méta-heuristiques</a> -->
     </nav>
   </header>
@@ -261,17 +266,30 @@
 
     <!-- Controls -->
     <div id="controls">
-      <label for="filename">Fichier :</label>
+      <label for="filename">Benchmark file:</label>
       <select id="filename" name="filename">
-        <option value="{{ default_filename }}">{{ default_filename }}</option>
+        <option disabled selected>— Choose a file —</option>
+        <option value="berlin52_coords.txt">Berlin52</option>
+        <option value="krA100_coords.txt">krA100</option>
+        <option value="a280_coords.txt">a280</option>
+        <option value="ch150_coords.txt">ch150</option>
+        <option value="eil101_coords.txt">eil101</option>
+        <option value="pr107_coords.txt">pr107</option>
+        <option value="pr144_coords.txt">pr144</option>
+        <option value="pr152_coords.txt">pr152</option>
+        <option value="pr299_coords.txt">pr299</option>
+        <option value="rat99_coords.txt">rat99</option>
+        <option value="rat195_coords.txt">rat195</option>
+        <option value="st70_coords.txt">st70</option>
       </select>
-      <button id="startBtn">Lancer comparaison</button>
+      <button type="button" id="startBtn">Start comparison</button>
+      <span id="errorMsg" style="color: #e53e3e; margin-left: 1rem;"></span>
     </div>
 
     <!-- Panels A & B -->
     <div class="container">
       <div class="panel" id="panelA">
-        <h2>Algorithme A</h2>
+        <h2>Algorithm A</h2>
         <select id="algoA"></select>
         <div id="paramsA"></div>
         <div class="console-panel">
@@ -279,7 +297,7 @@
         </div>
       </div>
       <div class="panel" id="panelB">
-        <h2>Algorithme B</h2>
+        <h2>Algorithm B</h2>
         <select id="algoB"></select>
         <div id="paramsB"></div>
         <div class="console-panel">
@@ -295,7 +313,7 @@
         <canvas id="chartConvergence" width="600" height="250"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Erreur relative (%)</h3>
+        <h3>Relative Error (%)</h3>
         <canvas id="chartError" width="600" height="250"></canvas>
       </div>
     </div>
@@ -303,9 +321,9 @@
     <!-- Best tours -->
     <div class="best-container">
       <div class="chart-card best-tour-list">
-        <h3>Meilleur Tour A</h3>
+        <h3>Best tour A</h3>
         <p id="bestTourA">…</p>
-        <h3>Meilleur Tour B</h3>
+        <h3>Best tour B</h3>
         <p id="bestTourB">…</p>
       </div>
     </div>
@@ -313,11 +331,11 @@
     <!-- Trace du tour A & B -->
     <div class="trace-container">
       <div class="chart-card trace-card">
-        <h3>Trace du tour A</h3>
+        <h3>Tour path A</h3>
         <canvas id="mapTourA" width="500" height="400"></canvas>
       </div>
       <div class="chart-card trace-card">
-        <h3>Trace du tour B</h3>
+        <h3>Tour path B</h3>
         <canvas id="mapTourB" width="500" height="400"></canvas>
       </div>
     </div>
@@ -328,6 +346,7 @@
       // 1) DOM elements
       const algos = JSON.parse(document.getElementById('algos-data').textContent);
       const selA = document.getElementById('algoA'),
+
         selB = document.getElementById('algoB'),
         paramsA = document.getElementById('paramsA'),
         paramsB = document.getElementById('paramsB'),
@@ -337,13 +356,15 @@
         startBtn = document.getElementById('startBtn'),
         bestAElem = document.getElementById('bestTourA'),
         bestBElem = document.getElementById('bestTourB');
+      const errorMsg = document.getElementById('errorMsg');
+
 
       let resultA, resultB;
       let convergenceChart, errorChart, tourChartA, tourChartB;
 
       // 2) Populate algorithm selects
       function populate(sel) {
-        sel.innerHTML = '<option disabled selected>— Choisir —</option>';
+        sel.innerHTML = '<option disabled selected>— Choose —</option>';
         Object.keys(algos).forEach(k => sel.add(new Option(k, k)));
       }
       populate(selA);
@@ -366,11 +387,61 @@
       selB.onchange = () => showParams(selB.value, paramsB);
 
       // 4) Launch job + poll
+      // async function launch(panelId, algoKey) {
+      //   const payload = { algo: algoKey, filename: filenameEl.value };
+      //   document.querySelectorAll(`#params${panelId} input`).forEach(i => {
+      //     payload[i.name] = Number(i.value);
+      //   });
+      //   const startRes = await fetch("{% url 'compare_app:solver' %}", {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify(payload)
+      //   });
+      //   const { job_id } = await startRes.json();
+
+      //   let data, consoleEl = panelId === 'A' ? consoleA : consoleB;
+      //   do {
+      //     await new Promise(r => setTimeout(r, 500));
+      //     data = await fetch(`{% url 'compare_app:results' %}?job_id=${job_id}`)
+      //       .then(r => r.json());
+
+      //     consoleEl.textContent = data.logs
+      //       .map((l, i) => {
+      //         if (typeof l === 'string') return l;
+
+      //         // pick the correct iteration field:
+      //         const gen = l.gen !== undefined ? l.gen
+      //           : l.iteration !== undefined ? l.iteration
+      //             : i + 1;              // fallback to array index
+
+      //         // pick the correct time field:
+      //         const tps = l.time !== undefined ? l.time : l.temps;
+
+      //         return `Gén ${gen} | Dist: ${l.distance} | Err: ${l.error}% | Time: ${tps}s`;
+      //       })
+      //       .join('\n');
+      //     consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight
+
+      //   } while (data.status !== 'done');
+      //   consoleEl.textContent += `\n✅ Execution completed\n`;
+      //   consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight
+
+      //   return data;
+      // }
       async function launch(panelId, algoKey) {
+        // pick the right console element
+        const consoleEl = panelId === 'A' ? consoleA : consoleB;
+
+        // start with a header
+        consoleEl.textContent = 'Gen | Dist | Err | Time | Totaltime\n';
+
+        // prepare the payload
         const payload = { algo: algoKey, filename: filenameEl.value };
-        document.querySelectorAll(`#params${panelId} input`).forEach(i => {
-          payload[i.name] = Number(i.value);
-        });
+        document
+          .querySelectorAll(`#params${panelId} input`)
+          .forEach(i => { payload[i.name] = Number(i.value) });
+
+        // fire off the job
         const startRes = await fetch("{% url 'compare_app:solver' %}", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -378,35 +449,44 @@
         });
         const { job_id } = await startRes.json();
 
-        let data, consoleEl = panelId === 'A' ? consoleA : consoleB;
+        let data;
         do {
+          // wait a bit…
           await new Promise(r => setTimeout(r, 500));
+
+          // fetch status & logs
           data = await fetch(`{% url 'compare_app:results' %}?job_id=${job_id}`)
             .then(r => r.json());
 
-          consoleEl.textContent = data.logs
-            .map((l, i) => {
-              if (typeof l === 'string') return l;
+          // build each line: Gen X | Dist: Y | Err: Z% | Time: Ts | Totaltime: Ts
+          const lines = data.logs.map((l, i) => {
+            if (typeof l === 'string') return l;  // in case you ever push plain strings
 
-              // pick the correct iteration field:
-              const gen = l.gen !== undefined ? l.gen
-                : l.iteration !== undefined ? l.iteration
-                  : i + 1;              // fallback to array index
+            const gen = l.gen !== undefined ? l.gen : (l.iteration !== undefined ? l.iteration : i + 1);
+            const time = l.time !== undefined ? l.time : l.temps;
+            const total = l.temps_total;
 
-              // pick the correct time field:
-              const tps = l.time !== undefined ? l.time : l.temps;
+            return `Gen ${gen} | Dist: ${l.distance} | Err: ${l.error}% | Time: ${time}s | Totaltime: ${total}s`;
+          });
 
-              return `Gén ${gen} | Dist: ${l.distance} | Err: ${l.error}% | Tps: ${tps}s`;
-            })
-            .join('\n');
-            consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight
+          // rewrite the console (keep the header on top)
+          consoleEl.textContent = 'Gen | Dist | Err | Time | Totaltime\n'
+            + lines.join('\n');
+
+          // auto-scroll
+          consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
 
         } while (data.status !== 'done');
-        consoleEl.textContent += `\n✅ Exécution terminée\n`;
-        consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight
+
+        // final “done” message
+        consoleEl.textContent += '\n✅ Execution completed\n';
+        consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
 
         return data;
       }
+
+
+
 
       // 5) Draw convergence (A + B)
       function drawConvergence() {
@@ -450,15 +530,15 @@
           data: {
             labels,
             datasets: [
-              { label: 'Erreur A (%)', data: errA, borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.1)', spanGaps: false },
-              { label: 'Erreur B (%)', data: errB, borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.1)', spanGaps: false }
+              { label: 'Error A (%)', data: errA, borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.1)', spanGaps: false },
+              { label: 'Error B (%)', data: errB, borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.1)', spanGaps: false }
             ]
           },
           options: {
             plugins: { legend: { labels: { color: '#000' } } },
             scales: {
               x: { title: { display: true, text: 'Génération', color: '#000' }, ticks: { color: '#000' } },
-              y: { title: { display: true, text: 'Erreur (%)', color: '#000' }, ticks: { color: '#000' } }
+              y: { title: { display: true, text: 'Error (%)', color: '#000' }, ticks: { color: '#000' } }
             }
           }
         });
@@ -477,7 +557,7 @@
           data: {
             datasets: [
               { label: 'Tour A', data: pts, showLine: true, borderColor: 'blue', pointRadius: 4 },
-              { label: 'Départ A', data: [pts[0]], showLine: false, borderColor: 'red', pointRadius: 8 }
+              { label: 'Start A', data: [pts[0]], showLine: false, borderColor: 'red', pointRadius: 8 }
             ]
           },
           options: {
@@ -502,7 +582,7 @@
           data: {
             datasets: [
               { label: 'Tour B', data: pts, showLine: true, borderColor: 'blue', pointRadius: 4 },
-              { label: 'Départ B', data: [pts[0]], showLine: false, borderColor: 'red', pointRadius: 8 }
+              { label: 'Start B', data: [pts[0]], showLine: false, borderColor: 'red', pointRadius: 8 }
             ]
           },
           options: {
@@ -516,14 +596,20 @@
 
       // 9) On click “Lancer comparaison”
       startBtn.onclick = async () => {
-        if (!selA.value || !selB.value)
-          return alert('Veuillez choisir les deux algorithmes.');
+        if (selA.selectedIndex < 1 || selB.selectedIndex < 1) {
+          errorMsg.textContent = 'Please choose both algorithms before starting.';
+          return;
+        }
+        errorMsg.textContent = '';
+
         [resultA, resultB] = await Promise.all([
           launch('A', selA.value),
           launch('B', selB.value)
         ]);
-        bestAElem.textContent = resultA.tour.join(' → ');
-        bestBElem.textContent = resultB.tour.join(' → ');
+        const fullTourA = [...resultA.tour, resultA.tour[0]];
+        bestAElem.textContent = fullTourA.join(' → ');
+        const fullTourB = [...resultB.tour, resultB.tour[0]];
+        bestBElem.textContent = fullTourB.join(' → ');
         drawConvergence();
         drawError();
         drawTourA();
