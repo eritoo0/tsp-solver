@@ -104,6 +104,7 @@ def solve_tsp(filename, callback, **params):
     improvement_log = []
     error_rel = 100
     stagnation_counter = 0
+    stagnation_counter2 = 0
     stagnation_arreter = 0
     previous_best = best_score
     start_all = time.time()
@@ -133,9 +134,11 @@ def solve_tsp(filename, callback, **params):
         # --- Stagnation detection ---
         if abs(best_score - previous_best) < 1e-4:
             stagnation_counter += 1
+            stagnation_counter2 += 1
             stagnation_arreter += 1
         else:
             stagnation_counter = 0
+            stagnation_counter2 = 0
             stagnation_arreter = 0
             previous_best = best_score
 
@@ -192,7 +195,7 @@ def solve_tsp(filename, callback, **params):
             )
 
         # --- Strong stagnation (n >= 60) ---
-        if stagnation_counter >= 60:
+        if stagnation_counter2 >= 60:
             population = aggressive_restart(
                 population,
                 NUM_CITIES,
@@ -204,7 +207,7 @@ def solve_tsp(filename, callback, **params):
                 sa_T=120.0,
                 sa_cooling=0.995,
             )
-            stagnation_counter = 0
+            stagnation_counter2 = 0
             print("↪️ Relance agressive partielle effectuée")
             EVAL_WINDOW = max(2, EVAL_WINDOW - 1)
             print(
@@ -277,11 +280,6 @@ def solve_tsp(filename, callback, **params):
         improvement_log.append(improvement)
 
         # --- Algorithm used ---
-        algo_used = (
-            "ACO"
-            if ACO_ACTIVE
-            else "SA" if SA_ACTIVE else "HBC" if HBC_ACTIVE else "GA pur"
-        )
 
         # --- Relative error ---
         if OPTIMAL_DISTANCE:

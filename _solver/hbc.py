@@ -81,6 +81,12 @@ def solve_tsp_hbc(filename, callback, **params):
     logs = []
     start_all = time.time()
 
+    def two_opt(sol):
+        i, j = sorted(random.sample(range(NUM_CITIES), 2))
+        new = sol.copy()
+        new[i : j + 1] = reversed(new[i : j + 1])
+        return new
+
     for it in range(1, NUM_ITERATIONS + 1):
         start_gen = time.time()
         # à chaque itération, chaque abeille tente une amélioration
@@ -89,7 +95,8 @@ def solve_tsp_hbc(filename, callback, **params):
             if random.random() < EXPLORATION:
                 cand = large_perturbation(sol, NUM_CITIES, intensity=INTENSITY)
             else:
-                cand = mutate(tour=sol, mutation_rate=0.1, num_cities=NUM_CITIES)
+                #cand = mutate(tour=sol, mutation_rate=0.1, num_cities=NUM_CITIES)
+                cand = two_opt(sol)
             length = tour_length(cand)
             if length < best_score:
                 best, best_score = cand, length
@@ -118,7 +125,7 @@ def solve_tsp_hbc(filename, callback, **params):
         # callback vers l’UI
         callback("not done", best, city_coords.tolist(), best_score, error_log, logs)
 
-        if NUM_CITIES > 100 and error_rel <= 1 :
+        if NUM_CITIES > 100 and error_rel <= 1:
             break
         elif OPTIMAL_DISTANCE == best_score:
             break

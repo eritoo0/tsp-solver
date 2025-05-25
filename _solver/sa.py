@@ -97,22 +97,27 @@ def solve_tsp_sa(filename, callback, **params):
 
             # ── **callback à chaque itération** ─────────────────────────────────
             # elapsed = time.time() - t0
-            elapsed_total = time.time() - start_all
-            elapsed_gen = time.time() - start_gen
-            err = 0 if OPT is None else 100 * (best_score - OPT) / OPT
-            error_log.append(round(err, 2))
-            logs.append(
-                {
-                    "iteration": it + (run - 1) * MAX_ITER,
+            if it % 10 == 0 or it == MAX_ITER:
+                elapsed_gen   = time.time() - start_gen
+                elapsed_total = time.time() - start_all
+                err = 0 if OPT is None else 100 * (best_score - OPT) / OPT
+
+                logs.append({
+                    "iteration": it + (run - 1)*MAX_ITER,
                     "distance": best_score,
-                    "error": round(err, 2),
-                    "temps": round(elapsed_gen, 2),
+                    "error":    round(err, 2),
+                    "temps":    round(elapsed_gen,  2),
                     "temps_total": round(elapsed_total, 2),
-                }
-            )
-            callback(
-                "not done", best, city_coords.tolist(), best_score, error_log, logs
-            )
+                })
+
+                callback(
+                    "not done",
+                    best,
+                    city_coords.tolist(),
+                    best_score,
+                    [round(100*(s-OPT)/OPT,2) for s in error_log],
+                    logs
+                )
 
         print(f"↪️ Run {run}/{RESTARTS} terminé — best={best_score}")
         if NUM_CITIES > 100 and err <= 1 :

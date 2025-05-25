@@ -233,7 +233,7 @@ def honey_bee_colony(
         for _ in range(num_bees):
             bee = random.choice(population)
             if random.random() < exploration_rate:
-                new_bee = large_perturbation(bee, num_cities)
+                new_bee = large_perturbation(bee, num_cities,5)
             else:
                 new_bee = mutate(bee, mutation_rate, num_cities)
             if total_distance(new_bee, distance_matrix, num_cities) < best_dist:
@@ -254,6 +254,7 @@ def large_perturbation(tour, num_cities, intensity):
         i, j = sorted(random.sample(range(num_cities), 2))
         tour[i:j] = reversed(tour[i:j])
     return tour
+
 
 
 # Population diversity measurement (no arguments needed)
