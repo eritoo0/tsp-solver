@@ -30,12 +30,8 @@ def solve_tsp_aco(filename, callback, **params):
         OPTIMAL_DISTANCE = 6528
     elif filename == "krB100_coords.txt":
         OPTIMAL_DISTANCE = 22141
-    elif filename == "eil101_coords.txt":
-        OPTIMAL_DISTANCE = 629
     elif filename == "pr144_coords.txt":
         OPTIMAL_DISTANCE = 58537
-    elif filename == "a280_coords.txt":
-        OPTIMAL_DISTANCE = 2579
     elif filename == "pr107_coords.txt":
         OPTIMAL_DISTANCE = 44303
     elif filename == "pr152_coords.txt":

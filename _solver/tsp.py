@@ -43,12 +43,8 @@ def solve_tsp(filename, callback, **params):
         OPTIMAL_DISTANCE = 6528
     elif filename == "krB100_coords.txt":
         OPTIMAL_DISTANCE = 22141
-    elif filename == "eil101_coords.txt":
-        OPTIMAL_DISTANCE = 629
     elif filename == "pr144_coords.txt":
         OPTIMAL_DISTANCE = 58537
-    elif filename == "a280_coords.txt":
-        OPTIMAL_DISTANCE = 2579
     elif filename == "pr107_coords.txt":
         OPTIMAL_DISTANCE = 44303
     elif filename == "pr152_coords.txt":
@@ -258,16 +254,22 @@ def solve_tsp(filename, callback, **params):
                 child = crossover(p1, p2, NUM_CITIES)
             before = total_distance(child, distance_matrix, NUM_CITIES)
             child = mutate(child, MUTATION_RATE, NUM_CITIES)
+
             if SA_ACTIVE:
                 child = simulated_annealing(
                     child, distance_matrix, NUM_CITIES, T=SA_T, cooling_rate=SA_COOLING
                 )
             after = total_distance(child, distance_matrix, NUM_CITIES)
+
             improvement = before - after
-            if gen % 20 == 0 and NUM_CITIES < 200 and improvement < 5:
-                child = lin_kernighan(child, distance_matrix, NUM_CITIES, max_moves=50)
-            else:
-                child = lin_kernighan(child, distance_matrix, NUM_CITIES, max_moves=20)
+
+            if gen % 20 == 0:
+                # Choix du nombre de mouvements en fonction de la taille et de l’improvement
+                max_moves = 50 if NUM_CITIES <= 150 and improvement < 5 else 20
+                child = lin_kernighan(
+                    child, distance_matrix, NUM_CITIES, max_moves=max_moves
+                )
+
             if ACO_ACTIVE:
                 ACO_scores.append(improvement)
             elif SA_ACTIVE:
