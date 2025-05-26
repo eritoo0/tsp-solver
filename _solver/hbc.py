@@ -1,7 +1,7 @@
 import random
 import time
 import numpy as np
-from .funcs import distance, mutate, large_perturbation
+from .funcs import distance, mutate, large_perturbation, two_opt
 
 
 def solve_tsp_hbc(filename, callback, **params):
@@ -57,6 +57,20 @@ def solve_tsp_hbc(filename, callback, **params):
         OPTIMAL_DISTANCE = 1211
     elif filename == "rat195_coords.txt":
         OPTIMAL_DISTANCE = 2323
+    elif filename == "pr76_coords.txt":
+        OPTIMAL_DISTANCE = 108159
+    elif filename == "krB150_coords.txt":
+        OPTIMAL_DISTANCE = 26130
+    elif filename == "pr136_coords.txt":
+        OPTIMAL_DISTANCE = 96772
+    elif filename == "pr226_coords.txt":
+        OPTIMAL_DISTANCE = 80369
+    elif filename == "pr439_coords.txt":
+        OPTIMAL_DISTANCE = 107217
+    elif filename == "pr124_coords.txt":
+        OPTIMAL_DISTANCE = 59030
+    elif filename == "pr264_coords.txt":
+        OPTIMAL_DISTANCE = 49135
     else:
         OPTIMAL_DISTANCE = None
     # ── Matrice des distances euclidiennes arrondies ─────────────────────────
@@ -64,6 +78,7 @@ def solve_tsp_hbc(filename, callback, **params):
         [distance(i, j, city_coords) if i != j else 0 for j in range(NUM_CITIES)]
         for i in range(NUM_CITIES)
     ]
+    random.seed(time.time())
 
     def tour_length(tour):
         return sum(
@@ -81,12 +96,6 @@ def solve_tsp_hbc(filename, callback, **params):
     logs = []
     start_all = time.time()
 
-    def two_opt(sol):
-        i, j = sorted(random.sample(range(NUM_CITIES), 2))
-        new = sol.copy()
-        new[i : j + 1] = reversed(new[i : j + 1])
-        return new
-
     for it in range(1, NUM_ITERATIONS + 1):
         start_gen = time.time()
         # à chaque itération, chaque abeille tente une amélioration
@@ -95,8 +104,8 @@ def solve_tsp_hbc(filename, callback, **params):
             if random.random() < EXPLORATION:
                 cand = large_perturbation(sol, NUM_CITIES, intensity=INTENSITY)
             else:
-                #cand = mutate(tour=sol, mutation_rate=0.1, num_cities=NUM_CITIES)
-                cand = two_opt(sol)
+                # cand = mutate(tour=sol, mutation_rate=0.1, num_cities=NUM_CITIES)
+                cand = two_opt(sol, num_citie=NUM_CITIES)
             length = tour_length(cand)
             if length < best_score:
                 best, best_score = cand, length

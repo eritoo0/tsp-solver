@@ -215,14 +215,20 @@ def lin_kernighan(tour, distance_matrix, num_cities, max_moves=50):
 # Honey Bee Colony algorithm
 
 
+def two_opt(sol , num_citie):
+    i, j = sorted(random.sample(range(num_citie), 2))
+    new = sol.copy()
+    new[i : j + 1] = reversed(new[i : j + 1])
+    return new
+
 def honey_bee_colony(
     population,
     distance_matrix,
     num_cities,
     pop_size,
-    mutation_rate,
-    num_bees=20,
-    max_iter=100,
+    
+    num_bees,
+    max_iter,
     exploration_rate=0.3,
 ):
     best_solution = min(
@@ -235,7 +241,9 @@ def honey_bee_colony(
             if random.random() < exploration_rate:
                 new_bee = large_perturbation(bee, num_cities,5)
             else:
-                new_bee = mutate(bee, mutation_rate, num_cities)
+                new_bee = two_opt(bee , num_cities)
+                #new_bee = mutate(bee, mutation_rate, num_cities)
+                
             if total_distance(new_bee, distance_matrix, num_cities) < best_dist:
                 best_solution = new_bee
                 best_dist = total_distance(new_bee, distance_matrix, num_cities)

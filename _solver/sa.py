@@ -33,6 +33,7 @@ def solve_tsp_sa(filename, callback, **params):
         return sum(dist[t[i]][t[(i + 1) % NUM_CITIES]] for i in range(NUM_CITIES))
 
     # ── Optimum connu (pour erreur relative) ─────────────────────────────────
+    # Known optima
     if filename == "krA100_coords.txt":
         OPT = 21282
     elif filename == "berlin52_coords.txt":
@@ -57,6 +58,20 @@ def solve_tsp_sa(filename, callback, **params):
         OPT = 1211
     elif filename == "rat195_coords.txt":
         OPT = 2323
+    elif filename == "pr76_coords.txt":
+        OPT = 108159
+    elif filename == "krB150_coords.txt":
+        OPT = 26130
+    elif filename == "pr136_coords.txt":
+        OPT = 96772
+    elif filename == "pr226_coords.txt":
+        OPT = 80369
+    elif filename == "pr439_coords.txt":
+        OPT = 107217
+    elif filename == "pr124_coords.txt":
+        OPT = 59030
+    elif filename == "pr264_coords.txt":
+        OPT = 49135
     else:
         OPT = None
 
@@ -65,6 +80,8 @@ def solve_tsp_sa(filename, callback, **params):
     error_log = []
     logs = []
     t0 = time.time()
+
+    random.seed(time.time())
 
     # ── voisinage 2-opt ───────────────────────────────────────────────────────
     def neighbor(sol):
@@ -98,37 +115,37 @@ def solve_tsp_sa(filename, callback, **params):
             # ── **callback à chaque itération** ─────────────────────────────────
             # elapsed = time.time() - t0
             if it % 10 == 0 or it == MAX_ITER:
-                elapsed_gen   = time.time() - start_gen
+                elapsed_gen = time.time() - start_gen
                 elapsed_total = time.time() - start_all
                 err = 0 if OPT is None else 100 * (best_score - OPT) / OPT
 
-                logs.append({
-                    "iteration": it + (run - 1)*MAX_ITER,
-                    "distance": best_score,
-                    "error":    round(err, 2),
-                    "temps":    round(elapsed_gen,  2),
-                    "temps_total": round(elapsed_total, 2),
-                })
+                logs.append(
+                    {
+                        "iteration": it + (run - 1) * MAX_ITER,
+                        "distance": best_score,
+                        "error": round(err, 2),
+                        "temps": round(elapsed_gen, 2),
+                        "temps_total": round(elapsed_total, 2),
+                    }
+                )
 
                 callback(
                     "not done",
                     best,
                     city_coords.tolist(),
                     best_score,
-                    [round(100*(s-OPT)/OPT,2) for s in error_log],
-                    logs
+                    [round(100 * (s - OPT) / OPT, 2) for s in error_log],
+                    logs,
                 )
 
         print(f"↪️ Run {run}/{RESTARTS} terminé — best={best_score}")
-        if NUM_CITIES > 100 and err <= 1 :
+        if NUM_CITIES > 100 and err <= 1:
             break
         elif OPT == best_score:
             break
     # ── Fin du solver ────────────────────────────────────────────────────────
     total = time.time() - t0
-    
-    
-    
+
     print(f"✅ SA terminé en {total:.2f}s — distance={best_score}")
     callback("done", best, city_coords.tolist(), best_score, error_log, logs)
     return best, best_score, error_log, logs, city_coords.tolist()

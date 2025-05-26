@@ -78,10 +78,16 @@ ALGORITHMS = {
         },
         # Paramètre HBC (mutation spécifique)
         {
-            "name": "HBC_MUTATION_RATE",
-            "label": "Mutation Rate (HBC)",
+            "name": "NUM_BEES",
+            "label": "Number of bees in each iteration",
             "type": "number",
-            "default": 0.2,
+            "default": 20,
+        },
+        {
+            "name": "MAX_ITER",
+            "label": "Iterations (beehive)",
+            "type": "number",
+            "default": 50,
         },
     ],
     "ga": [

@@ -67,17 +67,24 @@
           <!-- <input type="text" id="filename" name="filename" value="berlin52_coords.txt" /> -->
           <select name="filename">
             <option value="berlin52_coords.txt">Berlin52</option>
+            <option value="pr76_coords.txt">pr76</option>
+            <option value="rat99_coords.txt">rat99</option>
             <option value="krA100_coords.txt">krA100</option>
-            <option value="a280_coords.txt">a280</option>
-            <option value="ch150_coords.txt">ch150</option>
+            <option value="krB100_coords.txt">krB100</option>
             <option value="eil101_coords.txt">eil101</option>
             <option value="pr107_coords.txt">pr107</option>
+            <option value="pr124_coords.txt">pr124</option>
+            <option value="pr136_coords.txt">pr136</option>
             <option value="pr144_coords.txt">pr144</option>
+            <option value="ch150_coords.txt">ch150</option>
+            <option value="krB150_coords.txt">krB150</option>
             <option value="pr152_coords.txt">pr152</option>
-            <option value="pr299_coords.txt">pr299</option>
-            <option value="rat99_coords.txt">rat99</option>
             <option value="rat195_coords.txt">rat195</option>
-            <option value="st70_coords.txt">st70</option>
+            <option value="pr226_coords.txt">pr226</option>
+            <option value="pr264_coords.txt">pr264</option>
+            <option value="a280_coords.txt">a280</option>
+            <option value="pr299_coords.txt">pr299</option>
+            <option value="pr439_coords.txt">pr439</option>
           </select>
         </div>
         <div>
@@ -132,9 +139,14 @@
           <span class="error-message"></span>
         </div>
         <div>
-          <label for="HBC_MUTATION_RATE">HBC Mutation Rate (HBC_MUTATION_RATE)</label>
-          <input type="number" id="HBC_MUTATION_RATE" name="HBC_MUTATION_RATE" value="0.2" required min="0" max="1"
-            step="0.01" />
+          <label for="NUM_BEES">
+            Number of bees in each iteration</label>
+          <input type="number" id="NUM_BEES" name="NUM_BEES" value="20" required min="1" step="1" />
+          <span class="error-message"></span>
+        </div>
+        <div>
+          <label for="MAX_ITER">Iterations (beehive)</label>
+          <input type="number" id="MAX_ITER" name="MAX_ITER" value="50" required min="1" step="1" />
           <span class="error-message"></span>
         </div>
         <button type="submit">Run solver</button>
@@ -446,8 +458,11 @@
               }
               console.log("🖼️ pathChart instance:", pathChart);
               console.log("✅ Affichage du chemin, pathContainer classes:", pathContainer.classList);
-              logConsole.textContent += "\n✅ Execution completed\n";
-              logConsole.scrollTop = logConsole.scrollHeight;
+              if (!logConsole.textContent.includes("✅ Execution completed")) {
+                logConsole.textContent += "\n✅ Execution completed\n";
+                logConsole.scrollTop = logConsole.scrollHeight;
+              }
+
 
               return;
             }

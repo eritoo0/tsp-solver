@@ -43,11 +43,24 @@ def solve_tsp_ga(filename, callback, **params):
         OPTIMAL_DISTANCE = 1211
     elif filename == "rat195_coords.txt":
         OPTIMAL_DISTANCE = 2323
+    elif filename == "pr76_coords.txt":
+        OPTIMAL_DISTANCE = 108159
+    elif filename == "krB150_coords.txt":
+        OPTIMAL_DISTANCE = 26130
+    elif filename == "pr136_coords.txt":
+        OPTIMAL_DISTANCE = 96772
+    elif filename == "pr226_coords.txt":
+        OPTIMAL_DISTANCE = 80369
+    elif filename == "pr439_coords.txt":
+        OPTIMAL_DISTANCE = 107217
+    elif filename == "pr124_coords.txt":
+        OPTIMAL_DISTANCE = 59030
+    elif filename == "pr264_coords.txt":
+        OPTIMAL_DISTANCE = 49135
     else:
         OPTIMAL_DISTANCE = None
 
-    # random.seed(time.time())
-    random.seed(42)
+    random.seed(time.time())
 
     # Distance matrix
     distance_matrix = [
@@ -113,7 +126,7 @@ def solve_tsp_ga(filename, callback, **params):
         callback("not done", best, city_coords.tolist(), best_score, error_log, logs)
 
         # --- Early stopping ---
-        if NUM_CITIES > 100 and error_rel <= 1 :
+        if NUM_CITIES > 100 and error_rel <= 1:
             break
         elif OPTIMAL_DISTANCE == best_score:
             break

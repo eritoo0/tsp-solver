@@ -21,8 +21,10 @@ def solve_tsp(filename, callback, **params):
     SA_T = params.get("SA_T", 50.0)  # température initiale
     SA_COOLING = params.get("SA_COOLING", 0.995)  # facteur de décroissance
 
-    # HBC (pour éventuellement surcharger le taux de mutation dans HBC)
-    HBC_MUTATION_RATE = params.get("HBC_MUTATION_RATE", 0.2)
+    # HBC
+    # HBC_MUTATION_RATE = params.get("HBC_MUTATION_RATE", 0.2)
+    NUM_BEES = params.get("NUM_BEES", 20)
+    MAX_ITER = params.get("MAX_ITER", 50)
 
     # Load cities
     from pathlib import Path
@@ -57,11 +59,24 @@ def solve_tsp(filename, callback, **params):
         OPTIMAL_DISTANCE = 1211
     elif filename == "rat195_coords.txt":
         OPTIMAL_DISTANCE = 2323
+    elif filename == "pr76_coords.txt":
+        OPTIMAL_DISTANCE = 108159
+    elif filename == "krB150_coords.txt":
+        OPTIMAL_DISTANCE = 26130
+    elif filename == "pr136_coords.txt":
+        OPTIMAL_DISTANCE = 96772
+    elif filename == "pr226_coords.txt":
+        OPTIMAL_DISTANCE = 80369
+    elif filename == "pr439_coords.txt":
+        OPTIMAL_DISTANCE = 107217
+    elif filename == "pr124_coords.txt":
+        OPTIMAL_DISTANCE = 59030
+    elif filename == "pr264_coords.txt":
+        OPTIMAL_DISTANCE = 49135
     else:
         OPTIMAL_DISTANCE = None
 
-    # random.seed(time.time())
-    random.seed(42)
+    random.seed(time.time())
 
     # Distance matrix
     distance_matrix = [
@@ -113,7 +128,6 @@ def solve_tsp(filename, callback, **params):
         start_gen = time.time()
         ACO_ACTIVE = False
         SA_ACTIVE = False
-        HBC_ACTIVE = False
 
         # --- Dynamic adaptation ---
         if gen > 0 and gen % ADAPT_INTERVAL == 0:
@@ -153,7 +167,7 @@ def solve_tsp(filename, callback, **params):
                 ACO_ACTIVE = gen % 2 != 0
                 SA_ACTIVE = not ACO_ACTIVE
 
-        # --- Moderate stagnation (30 ≤ n < 60) ---
+        # --- Moderate stagnation (30 ≤ n < 50) ---
         if stagnation_counter >= 30:
             print("\n🧠 [STAGNATION > 30] Détection de stagnation prolongée.")
             diversity = pop_diversity(population)
@@ -177,7 +191,8 @@ def solve_tsp(filename, callback, **params):
                         distance_matrix,
                         NUM_CITIES,
                         POP_SIZE,
-                        mutation_rate=HBC_MUTATION_RATE,
+                        num_bees=NUM_BEES,
+                        max_iter=MAX_ITER,
                     )
                     for _ in range(POP_SIZE)
                 ]
@@ -194,8 +209,8 @@ def solve_tsp(filename, callback, **params):
                 f"↪️ Population modifiée. Nouvelle taille de fenêtre = {EVAL_WINDOW}\n"
             )
 
-        # --- Strong stagnation (n >= 60) ---
-        if stagnation_counter2 >= 60:
+        # --- Strong stagnation (n >= 50) ---
+        if stagnation_counter2 >= 50:
             population = aggressive_restart(
                 population,
                 NUM_CITIES,
@@ -217,7 +232,7 @@ def solve_tsp(filename, callback, **params):
         # --- Early stop (n >= 300) ---
         if stagnation_arreter >= 300:
             print(
-                "⛔ Arrêt anticipé : stagnation détectée pendant 250 générations consécutives."
+                "⛔ Arrêt anticipé : stagnation détectée pendant 300 générations consécutives."
             )
             break
 
@@ -289,13 +304,6 @@ def solve_tsp(filename, callback, **params):
         elapsed_total = time.time() - start_all
         elapsed_gen = time.time() - start_gen
 
-        # --- Console logging ---
-        # print(
-        #     f"Génération {gen+1} | Algorithme utilisé: {algo_used}"
-        #     f" | Best: {best_score:.2f}"
-        #     f" | Erreur relative: {error_rel:.2f}%"
-        #     f" | Temps: {elapsed:.2f}s"
-        # )
         distance_log.append(best_score)
         error_log.append(error_rel)
         logs.append(
@@ -311,7 +319,7 @@ def solve_tsp(filename, callback, **params):
         callback("not done", best, city_coords.tolist(), best_score, error_log, logs)
 
         # --- Early stopping ---
-        if NUM_CITIES > 100 and error_rel <= 1 :
+        if NUM_CITIES > 100 and error_rel <= 1:
             break
         if OPTIMAL_DISTANCE == best_score:
             break
@@ -320,6 +328,8 @@ def solve_tsp(filename, callback, **params):
     total_seconds = time.time() - start_all
     minutes = int(total_seconds // 60)
     seconds = round(total_seconds % 60, 2)
+
+    # pour verifier
     print("\n--- RESULTATS FINAUX ---")
     print("Meilleur tour:", best)
     print(f"Temps total: {minutes} minute(s) et {seconds} seconde(s)")
