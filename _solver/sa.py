@@ -40,8 +40,8 @@ def solve_tsp_sa(filename, callback, **params):
         OPT = 7542
     elif filename == "ch150_coords.txt":
         OPT = 6528
-    elif filename == "st70_coords.txt":
-        OPT = 675
+    elif filename == "krB100_coords.txt":
+        OPT = 22141
     elif filename == "eil101_coords.txt":
         OPT = 629
     elif filename == "pr144_coords.txt":

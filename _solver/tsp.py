@@ -41,8 +41,8 @@ def solve_tsp(filename, callback, **params):
         OPTIMAL_DISTANCE = 7542
     elif filename == "ch150_coords.txt":
         OPTIMAL_DISTANCE = 6528
-    elif filename == "st70_coords.txt":
-        OPTIMAL_DISTANCE = 675
+    elif filename == "krB100_coords.txt":
+        OPTIMAL_DISTANCE = 22141
     elif filename == "eil101_coords.txt":
         OPTIMAL_DISTANCE = 629
     elif filename == "pr144_coords.txt":
@@ -264,8 +264,10 @@ def solve_tsp(filename, callback, **params):
                 )
             after = total_distance(child, distance_matrix, NUM_CITIES)
             improvement = before - after
-            if gen % 20 == 0 and improvement < 5:
+            if gen % 20 == 0 and NUM_CITIES < 200 and improvement < 5:
                 child = lin_kernighan(child, distance_matrix, NUM_CITIES, max_moves=50)
+            else:
+                child = lin_kernighan(child, distance_matrix, NUM_CITIES, max_moves=20)
             if ACO_ACTIVE:
                 ACO_scores.append(improvement)
             elif SA_ACTIVE:

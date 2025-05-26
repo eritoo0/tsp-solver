@@ -25,8 +25,8 @@ def solve_tsp_ga(filename, callback, **params):
         OPTIMAL_DISTANCE = 7542
     elif filename == "ch150_coords.txt":
         OPTIMAL_DISTANCE = 6528
-    elif filename == "st70_coords.txt":
-        OPTIMAL_DISTANCE = 675
+    elif filename == "krB100_coords.txt":
+        OPTIMAL_DISTANCE = 22141
     elif filename == "eil101_coords.txt":
         OPTIMAL_DISTANCE = 629
     elif filename == "pr144_coords.txt":
